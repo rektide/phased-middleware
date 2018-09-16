@@ -1,6 +1,6 @@
 import Namer from "./namer.js"
 
-static _makePipeline(name){
+function _makePipeline(name){
 	// wrapper is a hack to dynamically the function we're creating
 	const 
 	  wrapper= {
@@ -10,6 +10,25 @@ static _makePipeline(name){
 		}
 	  }
 	return wrapper[ name]
+}
+
+function _phases( middleware){
+	const phases= {}
+	for( const name of middleware){
+		const
+		  member= middleware[ name],
+		  phase= member.phase
+		if( !phase){
+			continue
+		}
+		let phaseMethods= phases[ phase]
+		if( phaseMethods){
+			phaseMethods.push( member)
+		}else{
+			phases[ phase]= phaseMethods= [ member]
+		}
+	}
+	return phases
 }
 
 const prop(default, enumerable= false){
@@ -32,12 +51,14 @@ class PhasedMiddleware{
 			throw new Error("Expected 'pipelines'")
 		}
 		Object.defineProperties( this, {
-			pipeline: prop( {}, true), // the dictionary of pipeline runners
+			// input data
 			pipelines: prop( pipelines|| {}, true), // the definition of our pipelines
-			namer: prop( namer|| new Namer(), true), // convert middleware to univque symbol name
 			middlewares: prop( middlewares|| [], true), // middlwares, in order they are installed in
-			symbols: prop([]), // the corresponding symbols for each middleware
-			pregenerated: prop([])
+			namer: prop( namer|| new Namer(), true), // convert middleware to univque symbol name
+			// generated
+			pipeline: prop( {}, true), // main execution point, runner of pipelines
+			symbols: prop([]), // the corresponding symbols generated for each installed middleware
+			pregenerated: prop({}) // indexed pipeline->phase->methods
 		})
 		this.refresh()
 	}
@@ -54,21 +75,56 @@ class PhasedMiddleware{
 		this.refresh()
 		return this
 	}
+
 	refresh(){
 		this.pregenerated= {}
 		for( let name in this.pipelines){
 			this.pregenerated[ name]= []
 		}
-		for( let middleware of this.middlewares){ // iterate in order through middlewares
-			const phases= middleware.phases|| phases( middleware)
-			for( let pipeline in this.pipelines){ // go through each pipeline's phases
-				
-				this.pregenerated[ 
-			}
-		}
-		for( const pipeline in pipelines){
-			if( !this.pipeline){
-				this.pipeline[ pipeline]= _makePipeline( pipeline)
+		for( const middleware of this.middlewares){ // iterate in order through middlewares
+			const midPhases= middleware.phases|| _phases( middleware)
+
+			// go through each pipeline
+			for( const pipeline in this.pipelines){
+
+				const midPipeline= midPhases[ pipeline]
+				if( !midPipeline){
+					// middleware doesn't have this pipeline, skip
+					continue
+				}
+
+				// middlware has this pipeline, so get the pipeline from pregenerated
+				let prePipeline= this.pregenerated[ pipeline]
+				if( !prePipeline){
+					prePipeline= this.pregenerated[ pipeline]= {}
+				}
+
+				// go through each phase in pipeline
+				for( const phaseName of pipeline){ // go through each phase in the pipeline
+
+					const midPhase= midPipeline[ phaseName]
+					if( !midPhase){
+						// middleware pipeline doesn't have this phase, skip
+						continue
+					}
+
+					// middleware pipeline has this phase,  so add it to pregenerated pipeline
+					let preMethods= prePipeline[ phaseName] // pregenerated methods for this phase
+					const arr= Array.isArray( midPhase)
+					if( preMethods){
+						if( arr){
+							preMethods.push( ...arr)
+						}else{
+							preMethods.push( arr)
+						}
+					}else{
+						if( arr){
+							prePipeline[ phaseName]= [ ...midPhase]
+						}else{
+							prePipeline[ phaseNAme]= [ midPhase]
+						}
+					}
+				}
 			}
 		}
 	}
