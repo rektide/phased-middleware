@@ -30,30 +30,35 @@ class Meals{
 			}
 		}
 	}
-	breakfast( exec){
+	breakfast({ value}){
 		console.log("breakfast")
-		exec.energy += 3
+		value.energy += 3
+		return value
 	}
-	lunch( exec){
+	lunch({ value} ){
 		console.log("lunch")
-		exec.energy += 3
+		value.energy += 3
+		return value
 	}
-	dinner( exec){
+	dinner({ value}){
 		console.log("dinner")
-		exec.energy += 4
+		value.energy += 4
+		return value
 	}
 }
 class Activity{
 	constructor( intensity){
 		this.intensity= intensity|| 20
 	}
-	swim( target, pipeline, step){
+	swim({ value, middleware}){
 		console.log("swim")
-		exec.energy -= exec.step().intensity
+		value.energy -= middleware.intensity
+		return value
 	}
-	sleep( target, pipeline){
+	sleep({ value}){
 		console.log("sleep")
-		object.energy += 10
+		value.energy += 10
+		return value
 	}
 }
 Activity.prototype.swim.phase = "rise"

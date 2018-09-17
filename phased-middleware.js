@@ -1,14 +1,56 @@
-import Namer from "./namer.js"
-
-function _makePipeline(name){
+/**
+ * Build a function that will return an iteratable/iterator of a given `pipelineName`
+ */
+function _makePipeline( pipelineName){
 	// wrapper is a hack to dynamically the function we're creating
-	const 
-	  wrapper= {
-		[ name]: function( target){
-			for( const middleware in this.middlewares){
+	const wrapper= {
+	  [ name]: function( value){
+		return {
+		  // capture & hold some state from PhasedMiddleware
+		  // middleware can copy & update these if they are feeling brave about dynamic pipeline reworking
+		  pipeline: this._pipeline[ pipelineName],
+		  phaseNames= this._phaseNames[ pipelineName],
+		  // iteration stat
+		  phase: 0, // current phase number in pipeline
+		  element: 0, // current element number in phase
+		  middleware: null, // the piece of middleware for the current element
+		  // iterator/iterable methods
+		  value, // current value
+		  done: false, // whether we're done
+		  next: function(){
+			let
+			  phaseName= this.phaseNames[ this.phase],
+			  phase= this.pipeline[ phaseName]
+			// advance phase until there is a valid element
+			while( !phase|| this.element>= phase.length){
+				this.phase++
+				this.element= 0
+				// check for end
+				if( this.phase>= this.phaseNames.length){
+					// overran end, therefore done
+					this.value= undefined
+					this.done= true
+					return this
+				}
+				// load phase
+				phaseName= this.phaseNames[ this.phase]
+				phase= this.pipeline[ phaseName]
 			}
+			// get element, advance
+			let element= phase[ this.element++]
+			// capture element's middleware
+			this.middleware= element.middleware
+			// run, saving value
+			this.value= element.method( this)
+			// return current state of iterator
+			return this
+		  },
+		  [Symbol.iterator]: function(){
+			return this
+		  }
 		}
 	  }
+	}
 	return wrapper[ name]
 }
 
@@ -31,7 +73,7 @@ function _phases( middleware){
 	return phases
 }
 
-const prop(default, enumerable= false){
+const prop(default, enumerable= false, refreshPipelines){
 	const value
 	return {
 		get: function(){
@@ -39,6 +81,10 @@ const prop(default, enumerable= false){
 		},
 		set: function( newValue){
 			value = newValue
+			if( refreshPipelines){
+				this._pipeline= null
+				this._phaseNames= null
+			}
 			this.refresh()
 		},
 		enumerable
@@ -46,83 +92,84 @@ const prop(default, enumerable= false){
 }
 
 class PhasedMiddleware{
-	constructor({ pipelines, namer, middlewares}){
+	constructor({ pipelines, middlewares}){
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
 		Object.defineProperties( this, {
 			// input data
-			pipelines: prop( pipelines|| {}, true), // the definition of our pipelines
+			pipelines: prop( pipelines|| {}, true, true), // the definition of our pipelines
 			middlewares: prop( middlewares|| [], true), // middlwares, in order they are installed in
-			namer: prop( namer|| new Namer(), true), // convert middleware to univque symbol name
 			// generated
 			pipeline: prop( {}, true), // main execution point, runner of pipelines
-			symbols: prop([]), // the corresponding symbols generated for each installed middleware
-			pregenerated: prop({}) // indexed pipeline->phase->methods
+			_pipeline: prop( null), // pre-aggregated pipeline->phase->element-list
+			_phaseNames: prop( null) // pre-fetches pipeline->phases-list
 		})
 		this.refresh()
 	}
 	install( middleware){
 		this.middlewares.push( middleware)
-		this.symbols.push( this.namer( middleware))
 		this.refresh()
 		return this
 	}
 	splice( index, remove, ...inserted){
 		this.middlewares.splice( index, remove, inserted)
-		const symbols= inserted.map( this.namer)
-		this.symbols.splice( index, remove, symbols)
 		this.refresh()
 		return this
 	}
-
 	refresh(){
-		this.pregenerated= {}
-		for( let name in this.pipelines){
-			this.pregenerated[ name]= []
+		if( !this._pipeline|| !this._phaseNames){
+			this._phaseNames= {}
+			for( let name in this.pipelines){
+				this._pipeline[ name]= {}
+				this._phaseNames[ name]= Object.keys( this.pipelines[ name])
+				this.pipeline[ name]= this.pipeline[ name]|| _makePipeline( name)
+			}
 		}
-		for( const middleware of this.middlewares){ // iterate in order through middlewares
-			const midPhases= middleware.phases|| _phases( middleware)
+		this._pipeline= {}
+		// iterate in order through middlewares
+		for( const n in this.middlewares){
+			const
+			  middleware= this.middlewares[ n],
+			  midPhases= middleware.phases|| _phases( middleware)
 
 			// go through each pipeline
-			for( const pipeline in this.pipelines){
+			for( const pipelineName in this.pipelines){
 
-				const midPipeline= midPhases[ pipeline]
+				// find what this middleware has for this pipelineNname
+				const midPipeline= midPhases[ pipelineName]
 				if( !midPipeline){
 					// middleware doesn't have this pipeline, skip
 					continue
 				}
 
-				// middlware has this pipeline, so get the pipeline from pregenerated
-				let prePipeline= this.pregenerated[ pipeline]
+				// middlware has this pipeline, so get the _pipeline we'll be adding to
+				let prePipeline= this._pipeline[ pipelineName]
 				if( !prePipeline){
-					prePipeline= this.pregenerated[ pipeline]= {}
+					prePipeline= this._pipeline[ pipelineName]= {}
 				}
 
 				// go through each phase in pipeline
 				for( const phaseName of pipeline){ // go through each phase in the pipeline
 
-					const midPhase= midPipeline[ phaseName]
+					let midPhase= midPipeline[ phaseName]
 					if( !midPhase){
 						// middleware pipeline doesn't have this phase, skip
 						continue
 					}
 
-					// middleware pipeline has this phase,  so add it to pregenerated pipeline
-					let preMethods= prePipeline[ phaseName] // pregenerated methods for this phase
-					const arr= Array.isArray( midPhase)
-					if( preMethods){
-						if( arr){
-							preMethods.push( ...arr)
-						}else{
-							preMethods.push( arr)
+					// middleware pipeline has this phase, so add it's elements to pregenerated _pipeline
+					let preElements= prePipeline[ phaseName]
+					if( !preElements){
+						preElements= prePipeline[ phaseName]= []
+					}
+
+					if( Array.isArray( midPhase)){
+						for( const method of midPhase){
+							preElements.push({ method, middleware, n, phasedMiddleware: this })
 						}
 					}else{
-						if( arr){
-							prePipeline[ phaseName]= [ ...midPhase]
-						}else{
-							prePipeline[ phaseNAme]= [ midPhase]
-						}
+						preElements.push( midPhase)
 					}
 				}
 			}
