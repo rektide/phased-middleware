@@ -1,7 +1,7 @@
 import PhasedMiddleware from "../.." // ~
 import PersonalPipeline from "./pipeline.js"
 import Activity from "./activity.js"
-import Meal from "./meal.js"
+import Meals from "./meals.js"
 import Person from "./person.js"
 
 // our main contribution: a prebuilt phased middleware instance loaded with personal pipeline & plugins
@@ -12,13 +12,13 @@ export function PhasedMiddlewareInstance(){
 	phasedMiddlewareInstance.install(new Activity())
 	return phasedMiddlewareInstance
 }
-export default pipeline
+export default PhasedMiddlewareInstance
 
 export {
 	// reexports
 	PhasedMiddleware,
 	PersonalPipeline,
-	Meal,
+	Meals,
 	Activity,
 	Person
 }

@@ -22,5 +22,8 @@
 	},
 	"dependencies": {
 		"esm": "^3.0.84"
+	},
+	"devDependencies": {
+		"tape": "^4.9.1"
 	}
 }

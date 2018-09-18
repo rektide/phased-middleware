@@ -6,3 +6,4 @@ export const person= function({ energy}= defaults){
 		energy
 	}
 }
+export default person
