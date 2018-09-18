@@ -8,6 +8,6 @@ export const defaults= {
 }
 
 export const pipeline= function({ pipelines}= defaults){
-	return new PhasedMiddleware( pipelines)
+	return new PhasedMiddleware({ pipelines})
 }
 export default pipeline
