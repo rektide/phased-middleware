@@ -54,6 +54,19 @@ function _makePipeline( pipelineName){
 	return wrapper[ pipelineName]
 }
 
+function _makeExec( pipelineName){
+	const wrapper= {
+	  [ pipelineName]: value=> {
+		let current
+		for( let val of this.pipeline[ pipelineName]()){
+			current= val
+		}
+		return current
+	  }
+	}
+	return wrapper[ pipelineName]
+}
+
 function _phases( middleware){
 	const phases= {}
 	for( const name in middleware){
@@ -104,6 +117,7 @@ export class PhasedMiddleware{
 			middlewares: _prop( middlewares|| [], true), // middlwares, in order they are installed in
 			// generated
 			pipeline: _prop( {}, true), // main execution point, runner of pipelines
+			exec: _prop( {}, true), // main execution point, runner of pipelines
 			_pipeline: _prop( null), // pre-aggregated pipeline->phase->element-list
 			_phaseNames: _prop( null), // pre-fetches pipeline->phases-list
 			_refreshing: {
@@ -128,13 +142,13 @@ export class PhasedMiddleware{
 			return
 		}
 		this._refreshing= true
-		const noPipeline= !this._pipeline
-		this._pipeline= {}
-		if( noPipeline|| !this._phaseNames){
+		if( !this._pipeline|| !this._phaseNames){
+			this._pipeline= {}
 			this._phaseNames= {}
 			for( let name in this.pipelines){
 				this._phaseNames[ name]= Object.values( this.pipelines[ name])
 				this.pipeline[ name]= this.pipeline[ name]|| _makePipeline.call( this, name)
+				this.exec[ name]= this.exec[ name]|| _makeExec.call( this, name)
 			}
 		}
 		// iterate in order through middlewares

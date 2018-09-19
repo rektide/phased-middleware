@@ -4,12 +4,12 @@ import tape from "tape"
 
 tape( "build and run a personal pipeline", function( t){ 
 	const
-	  pipeline= Personal().pipeline,
+	  exec= Personal().exec,
 	  person= Person()
 	t.equal( person.energy, 10, "person starts with 10 energy")
-	pipeline.day( person)
+	exec.day( person)
 	t.equal( person.energy, -4, "day tires a person out")
-	pipeline.night( person)
+	exec.night( person)
 	t.equal( person.energy, 10, "persons recover during the night")
 	t.end()
 })
