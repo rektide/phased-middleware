@@ -4,7 +4,7 @@
 function _makePipeline( pipelineName){
 	// wrapper is a hack to dynamically the function we're creating
 	const wrapper= {
-	  [ name]: function( value){
+	  [ pipelineName]: value=> {
 		return {
 		  // capture & hold some state from PhasedMiddleware
 		  // middleware can copy & update these if they are feeling brave about dynamic pipeline reworking
@@ -51,12 +51,12 @@ function _makePipeline( pipelineName){
 		}
 	  }
 	}
-	return wrapper[ name]
+	return wrapper[ pipelineName]
 }
 
 function _phases( middleware){
 	const phases= {}
-	for( const name of middleware){
+	for( const name in middleware){
 		const
 		  member= middleware[ name],
 		  phase= member.phase
@@ -79,12 +79,15 @@ function _prop(value, enumerable= false, refreshPipelines){
 			return value
 		},
 		set: function( newValue){
-			value = newValue
-			if( refreshPipelines){
-				this._pipeline= null
-				this._phaseNames= null
+			const changed= value!= value
+			value= newValue
+			if( changed){
+				if( refreshPipelines){
+					this._pipeline= null
+					this._phaseNames= null
+				}
+				this.refresh()
 			}
-			this.refresh()
 		},
 		enumerable
 	}
@@ -102,7 +105,11 @@ export class PhasedMiddleware{
 			// generated
 			pipeline: _prop( {}, true), // main execution point, runner of pipelines
 			_pipeline: _prop( null), // pre-aggregated pipeline->phase->element-list
-			_phaseNames: _prop( null) // pre-fetches pipeline->phases-list
+			_phaseNames: _prop( null), // pre-fetches pipeline->phases-list
+			_refreshing: {
+				value: false,
+				writable: true
+			}
 		})
 		this.refresh()
 	}
@@ -117,15 +124,19 @@ export class PhasedMiddleware{
 		return this
 	}
 	refresh(){
-		if( !this._pipeline|| !this._phaseNames){
+		if( this._refreshing){
+			return
+		}
+		this._refreshing= true
+		const noPipeline= !this._pipeline
+		this._pipeline= {}
+		if( noPipeline|| !this._phaseNames){
 			this._phaseNames= {}
 			for( let name in this.pipelines){
-				this._pipeline[ name]= {}
-				this._phaseNames[ name]= Object.keys( this.pipelines[ name])
-				this.pipeline[ name]= this.pipeline[ name]|| _makePipeline( name)
+				this._phaseNames[ name]= Object.values( this.pipelines[ name])
+				this.pipeline[ name]= this.pipeline[ name]|| _makePipeline.call( this, name)
 			}
 		}
-		this._pipeline= {}
 		// iterate in order through middlewares
 		for( const n in this.middlewares){
 			const
@@ -149,7 +160,7 @@ export class PhasedMiddleware{
 				}
 
 				// go through each phase in pipeline
-				for( const phaseName of pipeline){ // go through each phase in the pipeline
+				for( const phaseName in midPipeline){ // go through each phase in the pipeline
 
 					let midPhase= midPipeline[ phaseName]
 					if( !midPhase){
@@ -173,6 +184,7 @@ export class PhasedMiddleware{
 				}
 			}
 		}
+		this._refreshing= false
 	}
 }
 export default PhasedMiddleware
