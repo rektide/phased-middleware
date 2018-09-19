@@ -58,7 +58,7 @@ function _makeExec( pipelineName){
 	const wrapper= {
 	  [ pipelineName]: value=> {
 		let current
-		for( let val of this.pipeline[ pipelineName]()){
+		for( let val of this.pipeline[ pipelineName]( value)){
 			current= val
 		}
 		return current
@@ -142,8 +142,8 @@ export class PhasedMiddleware{
 			return
 		}
 		this._refreshing= true
+		this._pipeline= {}
 		if( !this._pipeline|| !this._phaseNames){
-			this._pipeline= {}
 			this._phaseNames= {}
 			for( let name in this.pipelines){
 				this._phaseNames[ name]= Object.values( this.pipelines[ name])
@@ -193,7 +193,7 @@ export class PhasedMiddleware{
 							preElements.push({ method, middleware, n, phasedMiddleware: this })
 						}
 					}else{
-						preElements.push( midPhase)
+						preElements.push({ method: midPhase, middleware, n, phasedMiddleware: this })
 					}
 				}
 			}
