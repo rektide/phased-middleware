@@ -15,5 +15,5 @@ export class Activity{
 }
 export default Activity
 // this is an alternative to having a phase() member
-Activity.prototype.swim.phase = "rise"
-Activity.prototype.sleep.phase = "retire"
+Activity.prototype.swim.phase = [{pipeline: "day", phase: "rise"}]
+Activity.prototype.sleep.phase = {pipeline: "night", phase: "retire"}

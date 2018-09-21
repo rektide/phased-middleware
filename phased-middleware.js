@@ -1,3 +1,5 @@
+import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
+
 /**
  * Build a function that will return an iteratable/iterator of a given `pipelineName`
  */
@@ -69,18 +71,32 @@ function _makeExec( pipelineName){
 
 function _phases( middleware){
 	const phases= {}
-	for( const name in middleware){
+	for( const desc of getAllDescriptors( middleware)){
 		const
-		  member= middleware[ name],
-		  phase= member.phase
+		  name= desc.name|| desc.symbol,
+		  member= middleware[ name]
+		let
+		  phase= member&& member.phase
 		if( !phase){
 			continue
 		}
-		let phaseMethods= phases[ phase]
-		if( phaseMethods){
-			phaseMethods.push( member)
-		}else{
-			phases[ phase]= phaseMethods= [ member]
+
+		// pluralize
+		if( !phase[Symbol.iterator]){
+			phase= [ phase]
+		}
+		for( let install of phase){
+			let
+			  pipeline= phases[ install.pipeline],
+			  destPhase
+
+			if( !pipeline){
+				pipeline= phases[ install.pipeline]= {[ install.phase]: [ member]}
+			}else if( destPhase= pipeline[ install.phase]){
+				 destPhase.push( member)
+			}else{
+				pipeline[ install.phase]= [ member]
+			}
 		}
 	}
 	return phases

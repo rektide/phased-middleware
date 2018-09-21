@@ -61,8 +61,8 @@ class Activity{
 		return value
 	}
 }
-Activity.prototype.swim.phase = "rise"
-Activity.prototype.sleep.phase = "retire"
+Activity.prototype.swim.phase = [{pipeline: "day", phase: "rise"}]
+Activity.prototype.sleep.phase = {pipeline: "night", phase: "retire"}
 
 // install our middleware
 phasedMiddleware.install(new Meals())
