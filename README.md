@@ -5,8 +5,8 @@
 With many middlware systems (such as the `express` module's built in one), it's up to the developer to assemble the various pieces of middleware in order. Phased Middleware is a generally useful alternative for assembling code pipelines that features:
 * Named, in orer 'phases' of the pipeline, as for example seen in [Maven's build pipeline](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html#Build_Lifecycle_Basics).
 * Middleware that can install/uninstall itself into the pipeline in known places.
-* Installations of middleware are given their own semi-private piece of state, both per-middleware instance, and per execution.
 * Can manage multiple simultaenous pipelines that plugins install into.
+* Can return a step by step iterator, or a run-everything-now executor.
 
 # Usage
 
