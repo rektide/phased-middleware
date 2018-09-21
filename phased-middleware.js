@@ -10,6 +10,7 @@ function _makePipeline( pipelineName){
 		return {
 		  // capture & hold some state from PhasedMiddleware
 		  // middleware can copy & update these if they are feeling brave about dynamic pipeline reworking
+		  pipelineName,
 		  pipeline: this._pipeline[ pipelineName],
 		  phaseNames: this._phaseNames[ pipelineName],
 		  // iteration stat
@@ -20,9 +21,12 @@ function _makePipeline( pipelineName){
 		  value, // current value
 		  done: false, // whether we're done
 		  next: function(){
+			if( this.done){
+				return this
+			}
 			let
 			  phaseName= this.phaseNames[ this.phase],
-			  phase= this.pipeline[ phaseName]
+			  phase= this.pipeline&& this.pipeline[ phaseName]
 			// advance phase until there is a valid element
 			while( !phase|| this.element>= phase.length){
 				this.phase++
@@ -36,7 +40,7 @@ function _makePipeline( pipelineName){
 				}
 				// load phase
 				phaseName= this.phaseNames[ this.phase]
-				phase= this.pipeline[ phaseName]
+				phase= this.pipeline&& this.pipeline[ phaseName]
 			}
 			// get element, advance
 			let element= phase[ this.element++]
