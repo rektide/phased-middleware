@@ -6,7 +6,7 @@ import Meals from "./personal/meals.js"
 import Person from "./personal/person.js"
 import tape from "tape"
 
-tape( "a person eating & active", function( t){ 
+tape( "basic operation of two middleware, a person eating & active", function( t){ 
 	const
 	  exec= Personal().exec,
 	  person= Person()
@@ -18,7 +18,7 @@ tape( "a person eating & active", function( t){
 	t.end()
 })
 
-tape( "a person who is eatting", function( t){
+tape( "basic operation of a single middleware", function( t){
 	const
 	  phasedMiddleware= new PhasedMiddleware( personalPipelines),
 	  person= Person()
@@ -34,7 +34,7 @@ tape( "a person who is eatting", function( t){
 	t.end()
 })
 
-tape( "a person who is active", function( t){
+tape( "basic operation of a single middleware", function( t){
 	const
 	  phasedMiddleware= new PhasedMiddleware( personalPipelines),
 	  person= Person()
@@ -50,7 +50,7 @@ tape( "a person who is active", function( t){
 	t.end()
 })
 
-tape( "an eatting person who starts activity on day two", function( t){
+tape( "installed middleware can be changed over time", function( t){
 	const
 	  phasedMiddleware= new PhasedMiddleware( personalPipelines),
 	  person= Person()
@@ -68,5 +68,27 @@ tape( "an eatting person who starts activity on day two", function( t){
 	t.equal( person.energy, 6, "person eats lunch & breakfast & swims")
 	phasedMiddleware.exec.night( person)
 	t.equal( person.energy, 20, "person has dinner & sleeps")
+	t.end()
+})
+
+tape( "one instance of middleware can be installed twice", function( t){
+	const
+	  phasedMiddleware= new PhasedMiddleware( personalPipelines),
+	  person= Person(),
+	  meals= new Meals()
+	// day one, & night one
+	t.equal( person.energy, 10, "person starts with 10 nergy")
+	phasedMiddleware.install( meals)
+	phasedMiddleware.exec.day( person)
+	t.equal( person.energy, 16, "a person gains 6 energy from breakfast & lunch in the day")
+	phasedMiddleware.exec.night( person)
+	t.equal( person.energy, 20, "a person gains 4 energy from dinner in the night")
+
+	// day two: eat again
+	phasedMiddleware.install( meals) // reinstall the same middleware
+	phasedMiddleware.exec.day( person)
+	t.equal( person.energy, 32, "person eats two breakfast & lunches")
+	phasedMiddleware.exec.night( person)
+	t.equal( person.energy, 40, "person has two dinners")
 	t.end()
 })

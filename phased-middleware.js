@@ -126,12 +126,28 @@ function _prop(value, enumerable= false, refreshPipelines){
 	}
 }
 
+let nameSerial= 0
+function _middlewareName( middleware){
+	if( middleware.name){
+		return middleware.name
+	}
+	if( middleware.constructor){
+		return middleware.constructor.name
+	}
+	return `middleware-${nameSerial++}`
+}
+
+function _defaultName(){
+	return `phased-${nameSerial++}`
+}
+
 export class PhasedMiddleware{
-	constructor({ pipelines, middlewares}){
+	constructor({ pipelines, middlewares, name}){
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
 		Object.defineProperties( this, {
+			name: _prop( name|| _defaultName(), true), // decorative
 			// input data
 			pipelines: _prop( pipelines|| {}, true, true), // the definition of our pipelines
 			middlewares: _prop( middlewares|| [], true), // middlwares, in order they are installed in
@@ -175,6 +191,7 @@ export class PhasedMiddleware{
 		for( const n in this.middlewares){
 			const
 			  middleware= this.middlewares[ n],
+			  middlewareName= _middlewareName( middleware),
 			  midPhases= middleware.phases|| _phases( middleware)
 
 			// go through each pipeline
@@ -208,12 +225,13 @@ export class PhasedMiddleware{
 						preElements= prePipeline[ phaseName]= []
 					}
 
+					const symbol= Symbol.for(`${this.name}:${middlewareName}:${n}`)
 					if( Array.isArray( midPhase)){
 						for( const method of midPhase){
-							preElements.push({ method, middleware, n, phasedMiddleware: this })
+							preElements.push({ method, middleware, n, phasedMiddleware: this, symbol })
 						}
 					}else{
-						preElements.push({ method: midPhase, middleware, n, phasedMiddleware: this })
+						preElements.push({ method: midPhase, middleware, n, phasedMiddleware: this, symbol })
 					}
 				}
 			}
