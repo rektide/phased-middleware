@@ -13,7 +13,10 @@ function _makePipeline( pipelineName){
 		  pipelineName,
 		  pipeline: this._pipeline[ pipelineName],
 		  phaseNames: this._phaseNames[ pipelineName],
-		  // iteration stat
+		  setValue: function( value){
+			this.value= value
+		  },
+		  // iteration state
 		  phase: 0, // current phase number in pipeline
 		  element: 0, // current element number in phase
 		  middleware: null, // the piece of middleware for the current element
