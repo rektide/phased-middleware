@@ -163,13 +163,18 @@ export class PhasedMiddleware{
 		})
 		this.refresh()
 	}
-	install( middleware){
-		this.middlewares.push( middleware)
+	install( ...middlewares){
+		this.middlewares.push( ...middlewares)
 		this.refresh()
 		return this
 	}
 	splice( index, remove, ...inserted){
 		this.middlewares.splice( index, remove, inserted)
+		this.refresh()
+		return this
+	}
+	replace( ...middlewares){
+		this.middlewares= middlewares
 		this.refresh()
 		return this
 	}
