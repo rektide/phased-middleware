@@ -6,7 +6,7 @@ import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
 function _makePipeline( pipelineName){
 	// wrapper is a hack to dynamically the function we're creating
 	const wrapper= {
-	  [ pipelineName]: value=> {
+	  [ pipelineName]: input=> {
 		return {
 		  // capture & hold some state from PhasedMiddleware
 		  // middleware can copy & update these if they are feeling brave about dynamic pipeline reworking
@@ -17,8 +17,9 @@ function _makePipeline( pipelineName){
 		  phase: 0, // current phase number in pipeline
 		  element: 0, // current element number in phase
 		  middleware: null, // the piece of middleware for the current element
+		  input,
 		  // iterator/iterable methods
-		  value, // current value
+		  value: undefined, // current value
 		  done: false, // whether we're done
 		  next: function(){
 			if( this.done){
