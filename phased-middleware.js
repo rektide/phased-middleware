@@ -48,7 +48,10 @@ function _makePipeline( pipelineName){
 			// capture element's middleware
 			this.middleware= element.middleware
 			// run, saving value
-			this.value= element.method( this)
+			const status= element.method( this)
+			if( !status){
+				this.done= true
+			}
 			// return current state of iterator
 			return this
 		  },
