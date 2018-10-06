@@ -50,19 +50,20 @@ class Activity{
 	constructor( intensity){
 		this.intensity= intensity|| 20
 	}
-	swim({ value, middleware}){
+	swim({ input, middleware}){
 		console.log("swim")
-		value.energy -= middleware.intensity
+		input.energy -= middleware.intensity
 		return value
 	}
-	sleep({ value}){
+	sleep({ input, setValue}){
 		console.log("sleep")
-		value.energy += 10
-		return value
+		input.energy += 10
+		setValue( input)
+		return true
 	}
 }
-Activity.prototype.swim.phase = [{pipeline: "day", phase: "rise"}]
 Activity.prototype.sleep.phase = {pipeline: "night", phase: "retire"}
+Activity.prototype.swim.phase = [{pipeline: "day", phase: "rise"}]
 
 // install our middleware
 phasedMiddleware.install(new Meals())

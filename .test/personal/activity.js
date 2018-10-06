@@ -2,15 +2,17 @@ export class Activity{
 	constructor( intensity){
 		this.intensity= intensity|| 20
 	}
-	swim({ value, middleware}){
+	swim({ input, middleware, setValue}){
 		console.log("swim")
-		value.energy -= middleware.intensity
-		return value
+		input.energy -= middleware.intensity
+		setValue( input)
+		return true
 	}
-	sleep({ value}){
+	sleep({ input, setValue}){
 		console.log("sleep")
-		value.energy += 10
-		return value
+		input.energy += 10
+		setValue( input)
+		return true
 	}
 }
 export default Activity
