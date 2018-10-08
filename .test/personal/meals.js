@@ -11,17 +11,17 @@ export class Meals{
 		}
 	}
 	breakfast({ input, setValue}){
-		console.log("breakfast")
+		console.log( "breakfast")
 		input.energy += 3
 		setValue( input)
 	}
 	lunch({ input, setValue} ){
-		console.log("lunch")
+		console.log( "lunch")
 		input.energy += 3
 		setValue( input)
 	}
 	dinner({ input, setValue}){
-		console.log("dinner")
+		console.log( "dinner")
 		input.energy += 4
 		setValue( input)
 	}
