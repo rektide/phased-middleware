@@ -3,81 +3,134 @@ import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
 /**
  * Build a function that will return an iteratable/iterator of a given `pipelineName`
  */
-function _makePipeline( pipelineName){
+function _makeIterator( pipelineName){
+	// TODO: memoize
 	// wrapper is a hack to dynamically the function we're creating
-	const wrapper= {
-	  [ pipelineName]: input=> {
-		return {
-		  // capture & hold some state from PhasedMiddleware
-		  // middleware can copy & update these if they are feeling brave about dynamic pipeline reworking
-		  pipelineName,
-		  pipeline: this._pipeline[ pipelineName],
-		  phaseNames: this._phaseNames[ pipelineName],
-		  setValue: function( value){
+	const 
+	  name= `PhasedMiddleware:${pipelineName}:iterator`,
+	  wrapper= {[ name]: class {
+		constructor( phasedMiddleware, input){
+			Object.defineProperties( this, {
+				// top level state describing this iterator
+				phasedMiddleware: {
+					value: phasedMiddleware,
+					writable: true
+				},
+				input: {
+					value: input,
+					writable: true
+				},
+				pipelineName: {
+					value: pipelineName,
+					writable: true
+				},
+
+				// iteration state
+		  		// current phase number in pipeline
+				phaseNum: {
+					value: 0,
+					writable: true
+				},
+		  		// current element number in phase
+				elementNum: {
+					value: 0,
+					writable: true
+				},
+		  		// the piece of middleware for the current element
+				middleware: {
+					value: null,
+					writable: true
+				},
+
+				// bound methods
+				setValue: {
+					value: this.setValue.bind( this),
+					writable: true
+				}
+			})
+			this.value= phasedMiddleware.startWithInput? input: undefined
+			this.done= false
+		}
+		get pipeline(){
+			return this.phasedMiddleware._pipeline[ this.pipelineName]
+		}
+		get phaseNames(){
+			return this.phasedMiddleware._phaseNames[ this.pipelineName]
+		}
+		get phaseName(){
+			return this.phaseNames[ this.phaseNum]
+		}
+		get phase(){
+			return this.pipeline&& this.pipeline[ this.phaseName]
+		}
+		setValue( value){
 			this.value= value
-		  },
-		  // iteration state
-		  phase: 0, // current phase number in pipeline
-		  element: 0, // current element number in phase
-		  middleware: null, // the piece of middleware for the current element
-		  input,
-		  // iterator/iterable methods
-		  value: undefined, // current value
-		  done: false, // whether we're done
-		  next: function(){
+		}
+
+		exec( input){
+			for( let val of this){
+			}
+			return this.value
+		}
+
+		next(){
 			if( this.done){
 				return this
 			}
 			let
-			  phaseName= this.phaseNames[ this.phase],
-			  phase= this.pipeline&& this.pipeline[ phaseName]
+			  phaseName= this.phaseName,
+			  phase= this.phase
 			// advance phase until there is a valid element
-			while( !phase|| this.element>= phase.length){
-				this.phase++
-				this.element= 0
+			while( !this.phase|| this.elementNum>= phase.length){
+				this.phaseNum++
+				this.elementNum= 0
 				// check for end
-				if( this.phase>= this.phaseNames.length){
+				if( this.phaseNum>= this.phaseNames.length){
 					// overran end, therefore done
 					this.value= undefined
 					this.done= true
 					return this
 				}
 				// load phase
-				phaseName= this.phaseNames[ this.phase]
-				phase= this.pipeline&& this.pipeline[ phaseName]
+				phaseName= this.phaseName
+				phase= this.phase
 			}
 			// get element, advance
-			let element= phase[ this.element++]
+			let element= phase[ this.elementNum++]
 			// capture element's middleware
 			this.middleware= element.middleware
 			// run, saving value
-			const status= element.method( this)
-			if( !status){
+			const done= element.method( this)
+			if( done){
 				this.done= true
 			}
 			// return current state of iterator
 			return this
-		  },
-		  [Symbol.iterator]: function(){
-			return this
-		  }
 		}
+		[Symbol.iterator](){
+			return this
+		}
+	}}
+	return wrapper[ name]
+}
+
+function _makePipeline( pipelineName){
+	const
+	  name= `PhasedMiddleware:${pipelineName}:pipeline`,
+	  wrapper= {
+		[ name]: input=> new this.iterator[ pipelineName]( this, input)
 	  }
-	}
-	return wrapper[ pipelineName]
+	return wrapper[ name]
 }
 
 function _makeExec( pipelineName){
-	const wrapper= {
-	  [ pipelineName]: value=> {
-		let current
-		for( let val of this.pipeline[ pipelineName]( value)){
-			current= val
-		}
-		return current
+	const
+	  name= `PhasedMiddleware:${pipelineName}:exec`,
+	  wrapper= {[ name]: input=> {
+		return new (this.iterator[ pipelineName])( this, input).exec()
 	  }
 	}
-	return wrapper[ pipelineName]
+	return wrapper[ name]
 }
 
 function _phases( middleware){
@@ -161,6 +214,7 @@ export class PhasedMiddleware{
 			// generated
 			pipeline: _prop( {}, true), // main execution point, runner of pipelines
 			exec: _prop( {}, true), // main execution point, runner of pipelines
+			iterator: _prop( {}, true), // main execution point, runner of pipelines
 			_pipeline: _prop( null), // pre-aggregated pipeline->phase->element-list
 			_phaseNames: _prop( null), // pre-fetches pipeline->phases-list
 			_refreshing: {
@@ -195,6 +249,7 @@ export class PhasedMiddleware{
 			this._phaseNames= {}
 			for( let name in this.pipelines){
 				this._phaseNames[ name]= Object.values( this.pipelines[ name])
+				this.iterator[ name]= this.iterator[ name]|| _makeIterator( name)
 				this.pipeline[ name]= this.pipeline[ name]|| _makePipeline.call( this, name)
 				this.exec[ name]= this.exec[ name]|| _makeExec.call( this, name)
 			}

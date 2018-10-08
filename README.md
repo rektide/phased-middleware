@@ -33,17 +33,14 @@ class Meals{
 	breakfast({ value}){
 		console.log("breakfast")
 		value.energy += 3
-		return value
 	}
 	lunch({ value} ){
 		console.log("lunch")
 		value.energy += 3
-		return value
 	}
 	dinner({ value}){
 		console.log("dinner")
 		value.energy += 4
-		return value
 	}
 }
 class Activity{
@@ -53,13 +50,11 @@ class Activity{
 	swim({ input, middleware}){
 		console.log("swim")
 		input.energy -= middleware.intensity
-		return value
 	}
 	sleep({ input, setValue}){
 		console.log("sleep")
 		input.energy += 10
 		setValue( input)
-		return true
 	}
 }
 Activity.prototype.sleep.phase = {pipeline: "night", phase: "retire"}

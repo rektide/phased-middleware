@@ -3,16 +3,14 @@ export class Activity{
 		this.intensity= intensity|| 20
 	}
 	swim({ input, middleware, setValue}){
-		console.log("swim")
+		console.log( "swim")
 		input.energy -= middleware.intensity
 		setValue( input)
-		return true
 	}
 	sleep({ input, setValue}){
-		console.log("sleep")
+		console.log( "sleep")
 		input.energy += 10
 		setValue( input)
-		return true
 	}
 }
 export default Activity
