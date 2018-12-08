@@ -1,7 +1,7 @@
 import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
 import Iterator from "./iterator.js"
 import findPhases from "./util/find-phases.js"
-import { $middlewares, $name, $pipelines } from "./symbol.js"
+import { $middlewares, $name, $pipelines, $symbols } from "./symbol.js"
 
 function _makePipeline( pipelineName){
 	const
@@ -32,22 +32,30 @@ export class PhasedMiddleware{
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
+
+		// initialize base state
 		this[ $middlwares]= middlewares|| []
 		this[ $name]= name|| _defaultName()
 		this[ $pipelines]= pipelines
-		this.exec= {}
-		this.pipeline= {}
+		this[ $symbols]= new WeakMap()
+
+		// create each pipeline
 		for( let [ pipelineName, phases] of Object.entries( pipelines)){
 			this[ pipelineName]= new PhasedRun( phases)
 		}
+
+		// install middlewares into pipelines
 		if( middlewares){
 			this.install( ...middlewares)
 		}
 	}
 	install( ...middlewares){
 		for( let middleware of middlewares){
+			// assign a unique symbol to this install
+			const symbol= Symbol( _middlwareName( middleware))
+
 			// look for properties that have a `phase`
-			for( let descriptor of getAllDescriptors( middleware){
+			for( let descriptor of getAllDescriptors( middleware)){
 				const handler= middleware[ descriptor.name]
 				let phases= handler.phase
 				if( !phase){
@@ -57,7 +65,10 @@ export class PhasedMiddleware{
 					phases= [ phases]
 				}
 				for( let item of phases){
-					this[ item.pipeline].install( item.phase, handler)
+					if( !this[ pipelineName]){
+						continue
+					}
+					this[ item.pipeline].install( handler,{ phase: item, symbol})
 				}
 			}
 			// look at `phases` on the middleware
@@ -67,12 +78,67 @@ export class PhasedMiddleware{
 					if( !Array.isArray( handlers)){
 						handlers= [ handlers]
 					}
+					if( !this[ pipelineName]){
+						continue
+					}
 					for( let handler of handlers){
-						this[ pipelineName].install( phaseName, handler)
+						this[ pipelineName].install( handler,{ phase: phaseName, symbol})
 					}
 				}
 			}
 		}
+		return this
+	}
+	*pipeline( pipelineName, state, ...args){
+		const phasedrun= this[ pipelineName]
+		if( !phasedRun){
+			throw new Error(`Phased run '${pipelineName}' not found`)
+		}
+		const context= {
+		  phasedMiddleware: this,
+		  pipelineName,
+		  phasedRun,
+		  position: 0,
+		  handler: null,
+		  symbol: null,
+		  args,
+		  state,
+		  output: null
+		}
+		while( context.position< phasedRun.length){
+			const state= phasedRun.state[ context.position]
+			context.symbol= state.symbol
+			context.handler= phasedRun[ context.position]
+			context.handler( context)
+			yield context
+			context.position++
+		}
+		return context
+	}
+	exec( pipelineName, state, ...args){
+		const phasedrun= this[ pipelineName]
+		if( !phasedRun){
+			throw new Error(`Phased run '${pipelineName}' not found`)
+		}
+		const context= {
+		  phasedMiddleware: this,
+		  pipeline: name,
+		  phasedRun,
+		  position: 0,
+		  handler: null,
+		  symbol: null,
+		  args,
+		  state,
+		  output: null
+		}
+		while( context.position< phasedRun.length){
+			const state= phasedRun.state[ context.position]
+			context.handler= phasedRun[ context.position]
+			context.symbol= state.symbol
+			context.handler( context)
+			context.position++
+		}
+		return context
 	}
 }
 export default PhasedMiddleware

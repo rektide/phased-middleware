@@ -7,4 +7,7 @@ export const
   $name= name,
   pipelines= Symbol.for("phased-middleware:pipelines"),
   Pipelines= pipelines,
-  $pipelines= pipelines
+  $pipelines= pipelines,
+  symbols= Symbol.for("phased-middlware:symbols"),
+  Symbols= symbols,
+  $symbols= symbols
