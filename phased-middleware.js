@@ -1,7 +1,10 @@
 import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
+import PhasedRun from "phased-run"
+
 import Iterator from "./iterator.js"
+import { middlewareName, defaultName} from "./name.js"
+import { $middlewares, $name, $phases, $pipelines, $symbols } from "./symbol.js"
 import findPhases from "./util/find-phases.js"
-import { $middlewares, $name, $pipelines, $symbols } from "./symbol.js"
 
 function _makePipeline( pipelineName){
 	const
@@ -12,30 +15,15 @@ function _makePipeline( pipelineName){
 	return wrapper[ name]
 }
 
-let nameSerial= 0
-function _middlewareName( middleware){
-	if( middleware.name){
-		return `${middleware.name}-${nameSerial++}`
-	}
-	if( middleware.constructor){
-		return middleware.constructor.name
-	}
-	return `phased-middleware-${nameSerial++}`
-}
-
-function _defaultName(){
-	return `phased-${nameSerial++}`
-}
-
 export class PhasedMiddleware{
 	constructor({ pipelines, middlewares, name}){
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
-
+	
 		// initialize base state
-		this[ $middlwares]= middlewares|| []
-		this[ $name]= name|| _defaultName()
+		this[ $middlewares]= middlewares|| []
+		this[ $name]= name|| defaultName()
 		this[ $pipelines]= pipelines
 		this[ $symbols]= new WeakMap()
 
@@ -52,37 +40,40 @@ export class PhasedMiddleware{
 	install( ...middlewares){
 		for( let middleware of middlewares){
 			// assign a unique symbol to this install
-			const symbol= Symbol( _middlwareName( middleware))
+			const symbol= Symbol( middlewareName( middleware))
 
 			// look for properties that have a `phase`
 			for( let descriptor of getAllDescriptors( middleware)){
 				const handler= middleware[ descriptor.name]
-				let phases= handler.phase
-				if( !phase){
+				let phases= handler[ $phases]!== undefined? handler[ $phases]: (handler.phases|| handler.phase)
+				if( !phases){
 					continue
 				}
 				if( !Array.isArray( phases)){
 					phases= [ phases]
 				}
 				for( let item of phases){
-					if( !this[ pipelineName]){
+					if( !this[ item.pipeline]){
+						// warn? fail? middleware doesn't fit this PhasedMiddlewares
+						// at the same time, don't want to make this impossible!
 						continue
 					}
-					this[ item.pipeline].install( handler,{ phase: item, symbol})
+					this[ item.pipeline].push({ handler, ...item, symbol})
 				}
 			}
 			// look at `phases` on the middleware
 			const middlewarePhases= middleware[ $phases]|| middleware.phases|| {}
 			for( let [ pipelineName, phases] in Object.entries( middlewarePhases)){
-				for( let [ phaseName, handlers] of Object.entries( phases)){
+				for( let [ phaseName, handlers] of Object.entries( phases|| {})){
 					if( !Array.isArray( handlers)){
 						handlers= [ handlers]
 					}
 					if( !this[ pipelineName]){
+						// see: "warn? fail?" above
 						continue
 					}
 					for( let handler of handlers){
-						this[ pipelineName].install( handler,{ phase: phaseName, symbol})
+						this[ pipelineName].push({ handler, pipeline: pipelineName, phase: phaseName, symbol})
 					}
 				}
 			}

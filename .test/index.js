@@ -8,7 +8,7 @@ import tape from "tape"
 
 tape( "basic operation of two middleware, a person eating & active", function( t){ 
 	const
-	  pipeline= Personal().pipeline,
+	  pipeline= Personal(),
 	  person= Person()
 	t.equal( person.energy, 10, "person starts with 10 energy")
 	pipeline.day( person).exec()
