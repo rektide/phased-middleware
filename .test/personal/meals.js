@@ -10,20 +10,20 @@ export class Meals{
 			}
 		}
 	}
-	breakfast({ input, setValue}){
+	breakfast({ inputs, setOutput}){
 		console.log( "breakfast")
-		input.energy += 3
-		setValue( input)
+		inputs.energy += 3
+		setOutput( input)
 	}
-	lunch({ input, setValue} ){
+	lunch({ inputs, setOutput} ){
 		console.log( "lunch")
-		input.energy += 3
-		setValue( input)
+		inputs.energy += 3
+		setOutput( input)
 	}
-	dinner({ input, setValue}){
+	dinner({ inputs, setOutput}){
 		console.log( "dinner")
-		input.energy += 4
-		setValue( input)
+		inputs.energy += 4
+		setOutput( input)
 	}
 }
 export default Meals

@@ -26,4 +26,3 @@ export {
 export function person(){
 	return Person()
 }
-
