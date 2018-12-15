@@ -11,9 +11,9 @@ tape( "basic operation of two middleware, a person eating & active", function( t
 	  pipeline= Personal(),
 	  person= Person()
 	t.equal( person.energy, 10, "person starts with 10 energy")
-	pipeline.day( person).exec()
+	pipeline.exec( "day", null, person)
 	t.equal( person.energy, -4, "day tires a person out")
-	pipeline.night( person).exec()
+	pipeline.exec( "night", null, person)
 	t.equal( person.energy, 10, "persons recover during the night")
 	t.end()
 })

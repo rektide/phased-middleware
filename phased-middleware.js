@@ -81,7 +81,7 @@ export class PhasedMiddleware{
 		return this
 	}
 	*pipeline( pipelineName, state, ...args){
-		const phasedrun= this[ pipelineName]
+		const phasedRun= this[ pipelineName]
 		if( !phasedRun){
 			throw new Error(`Phased run '${pipelineName}' not found`)
 		}
@@ -97,23 +97,23 @@ export class PhasedMiddleware{
 		  output: null
 		}
 		while( context.position< phasedRun.length){
-			const state= phasedRun.state[ context.position]
-			context.symbol= state.symbol
-			context.handler= phasedRun[ context.position]
-			context.handler( context)
+			const item= phasedRun[ context.position]
+			context.handler= item.handler
+			context.phase= item.phase
+			context.symbol= item.symbol
 			yield context
 			context.position++
 		}
 		return context
 	}
 	exec( pipelineName, state, ...args){
-		const phasedrun= this[ pipelineName]
+		const phasedRun= this[ pipelineName]
 		if( !phasedRun){
 			throw new Error(`Phased run '${pipelineName}' not found`)
 		}
 		const context= {
 		  phasedMiddleware: this,
-		  pipeline: name,
+		  pipelineName,
 		  phasedRun,
 		  position: 0,
 		  handler: null,
@@ -122,11 +122,13 @@ export class PhasedMiddleware{
 		  state,
 		  output: null
 		}
+		console.log( phasedRun)
 		while( context.position< phasedRun.length){
-			const state= phasedRun.state[ context.position]
-			context.handler= phasedRun[ context.position]
-			context.symbol= state.symbol
+			const item= phasedRun[ context.position]
+			context.handler= item.handler
 			context.handler( context)
+			context.phase= item.phase
+			context.symbol= item.symbol
 			context.position++
 		}
 		return context
