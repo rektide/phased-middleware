@@ -90,18 +90,20 @@ export class PhasedMiddleware{
 			throw new Error(`Phased run '${pipelineName}' not found`)
 		}
 		const context= {
-		  // global context of run
-		  phasedMiddleware: this,
-		  pipelineName,
-		  phasedRun,
-		  state,
-		  input,
+		  // working material
+		  inputs,
 		  output: null,
 		  setOutput: function( output){
 			const oldValue= context.output
 			context.output= output
 			return oldValue
 		  },
+		  state,
+
+		  // global context of run
+		  phasedMiddleware: this,
+		  phasedRun,
+		  pipelineName,
 
 		  // positional context
 		  position: 0,
@@ -126,20 +128,26 @@ export class PhasedMiddleware{
 			throw new Error(`Phased run '${pipelineName}' not found`)
 		}
 		const context= {
-		  phasedMiddleware: this,
-		  pipelineName,
-		  phasedRun,
-		  position: 0,
-		  handler: null,
-		  symbol: null,
-		  state,
+		  // working material
 		  inputs,
 		  output: null,
-		  setOutput: function(output){
-			const oldOutput= context.output
+		  setOutput: function( output){
+			const oldValue= context.output
 			context.output= output
-			return oldOutput
-		  }
+			return oldValue
+		  },
+		  state,
+
+		  // global context of run
+		  phasedMiddleware: this,
+		  phasedRun,
+		  pipelineName,
+
+		  // positional context
+		  position: 0,
+		  middleware: null,
+		  handler: null,
+		  symbol: null,
 		}
 		while( context.position< phasedRun.length){
 			const item= phasedRun[ context.position]
