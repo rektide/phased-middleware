@@ -3,7 +3,7 @@ import PhasedRun from "phased-run"
 
 import Iterator from "./iterator.js"
 import { middlewareName, defaultName} from "./name.js"
-import { $middlewares, $name, $phases, $pipelines, $symbols } from "./symbol.js"
+import { $middlewares, $name, $phases, $pipelines} from "./symbol.js"
 import findPhases from "./util/find-phases.js"
 
 function _makePipeline( pipelineName){
@@ -25,7 +25,6 @@ export class PhasedMiddleware{
 		this[ $middlewares]= middlewares|| []
 		this[ $name]= name|| defaultName()
 		this[ $pipelines]= pipelines
-		this[ $symbols]= new WeakMap()
 
 		// create each pipeline
 		for( let [ pipelineName, phases] of Object.entries( pipelines)){
@@ -41,6 +40,11 @@ export class PhasedMiddleware{
 		for( let middleware of middlewares){
 			// assign a unique symbol to this install
 			const symbol= Symbol( middlewareName( middleware))
+
+			// save this middleware - first in list of middlewares
+			const index= this[ $middlewares].push({ middleware, symbol})
+			// associate the symbol with the middlware instance, for fast lookup
+			this[ symbol]= middleware
 
 			// look for properties that have a `phase`
 			for( let descriptor of getAllDescriptors( middleware)){
@@ -86,19 +90,29 @@ export class PhasedMiddleware{
 			throw new Error(`Phased run '${pipelineName}' not found`)
 		}
 		const context= {
+		  // global context of run
 		  phasedMiddleware: this,
 		  pipelineName,
 		  phasedRun,
-		  position: 0,
-		  handler: null,
-		  symbol: null,
 		  state,
 		  input,
-		  output: null
+		  output: null,
+		  setOutput: function( output){
+			const oldValue= context.output
+			context.output= output
+			return oldValue
+		  },
+
+		  // positional context
+		  position: 0,
+		  middleware: null,
+		  handler: null,
+		  symbol: null,
 		}
 		while( context.position< phasedRun.length){
 			const item= phasedRun[ context.position]
 			context.handler= item.handler
+			context.middleware= this[ item.symbol]
 			context.phase= item.phase
 			context.symbol= item.symbol
 			yield context
@@ -122,18 +136,18 @@ export class PhasedMiddleware{
 		  inputs,
 		  output: null,
 		  setOutput: function(output){
-			const oldOutput= output
+			const oldOutput= context.output
 			context.output= output
 			return oldOutput
 		  }
 		}
-		console.log( phasedRun)
 		while( context.position< phasedRun.length){
 			const item= phasedRun[ context.position]
 			context.handler= item.handler
-			context.handler( context)
+			context.middleware= this[ item.symbol]
 			context.phase= item.phase
 			context.symbol= item.symbol
+			context.handler( context)
 			context.position++
 		}
 		return context

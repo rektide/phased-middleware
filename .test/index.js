@@ -6,7 +6,7 @@ import Meals from "./personal/meals.js"
 import Person from "./personal/person.js"
 import tape from "tape"
 
-tape( "basic operation of two middleware, a person eating & active", function( t){ 
+tape( "basic operation of two middleware, a person eating & active", function( t){
 	const
 	  pipeline= Personal(),
 	  person= Person()

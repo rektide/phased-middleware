@@ -4,13 +4,15 @@ export class Activity{
 	}
 	swim({ inputs, middleware, setOutput}){
 		console.log( "swim")
-		inputs.energy-= middleware.intensity
-		setOutput( input)
+		const person= inputs[ 0]
+		person.energy-= middleware.intensity
+		setOutput( person)
 	}
 	sleep({ inputs, setOutput}){
 		console.log( "sleep")
-		inputs.energy += 10
-		setOutput( input)
+		const person= inputs[ 0]
+		person.energy+= 10
+		setOutput( person)
 	}
 }
 export default Activity

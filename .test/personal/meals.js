@@ -12,18 +12,21 @@ export class Meals{
 	}
 	breakfast({ inputs, setOutput}){
 		console.log( "breakfast")
-		inputs.energy += 3
-		setOutput( input)
+		const person= inputs[ 0]
+		person.energy+= 3
+		setOutput( person)
 	}
 	lunch({ inputs, setOutput} ){
 		console.log( "lunch")
-		inputs.energy += 3
-		setOutput( input)
+		const person= inputs[ 0]
+		person.energy+= 3
+		setOutput( person)
 	}
 	dinner({ inputs, setOutput}){
 		console.log( "dinner")
-		inputs.energy += 4
-		setOutput( input)
+		const person= inputs[ 0]
+		person.energy+= 4
+		setOutput( person)
 	}
 }
 export default Meals

@@ -10,7 +10,4 @@ export const
   $phases= phases,
   pipelines= Symbol.for("phased-middleware:pipelines"),
   Pipelines= pipelines,
-  $pipelines= pipelines,
-  symbols= Symbol.for("phased-middlware:symbols"),
-  Symbols= symbols,
-  $symbols= symbols
+  $pipelines= pipelines
