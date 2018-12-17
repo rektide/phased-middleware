@@ -24,13 +24,13 @@ tape( "basic operation of a single middleware", function( t){
 	  pipeline= phasedMiddleware.pipeline,
 	  person= Person()
 	t.equal( person.energy, 10, "person starts with 10 nergy")
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, 10, "nothing happens during the day with nothing installed")
 
 	phasedMiddleware.install(new Meals())
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, 16, "person now eats meals during the day & gets energy")
-	phasedMiddleware.pipeline.night( person).exec()
+	phasedMiddleware.exec( "night", null, person)
 	t.equal( person.energy, 20, "person now eats meals at night & gains energy")
 	t.end()
 })
@@ -40,13 +40,13 @@ tape( "basic operation of a single middleware", function( t){
 	  phasedMiddleware= new PhasedMiddleware( personalPipelines),
 	  person= Person()
 	t.equal( person.energy, 10, "person starts with 10 nergy")
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, 10, "nothing happens during the day with nothing installed")
 
 	phasedMiddleware.install(new Activity())
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, -10, "swimming tires person out")
-	phasedMiddleware.pipeline.night( person).exec()
+	phasedMiddleware.exec( "night", null, person)
 	t.equal( person.energy, 0, "sleeping restores a perseon")
 	t.end()
 })
@@ -58,16 +58,16 @@ tape( "installed middleware can be changed over time", function( t){
 	// day one, & night one
 	t.equal( person.energy, 10, "person starts with 10 nergy")
 	phasedMiddleware.install(new Meals())
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, 16, "a person gains 6 energy from breakfast & lunch in the day")
-	phasedMiddleware.pipeline.night( person).exec()
+	phasedMiddleware.exec( "night", null, person)
 	t.equal( person.energy, 20, "a person gains 4 energy from dinner in the night")
 
 	// day two, & night two
 	phasedMiddleware.install(new Activity())
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, 6, "person eats lunch & breakfast & swims")
-	phasedMiddleware.pipeline.night( person).exec()
+	phasedMiddleware.exec( "night", null, person)
 	t.equal( person.energy, 20, "person has dinner & sleeps")
 	t.end()
 })
@@ -80,16 +80,16 @@ tape( "one instance of middleware can be installed twice", function( t){
 	// day one, & night one
 	t.equal( person.energy, 10, "person starts with 10 nergy")
 	phasedMiddleware.install( meals)
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, 16, "a person gains 6 energy from breakfast & lunch in the day")
-	phasedMiddleware.pipeline.night( person).exec()
+	phasedMiddleware.exec( "night", null, person)
 	t.equal( person.energy, 20, "a person gains 4 energy from dinner in the night")
 
 	// day two: eat again
 	phasedMiddleware.install( meals) // reinstall the same middleware
-	phasedMiddleware.pipeline.day( person).exec()
+	phasedMiddleware.exec( "day", null, person)
 	t.equal( person.energy, 32, "person eats two breakfast & lunches")
-	phasedMiddleware.pipeline.night( person).exec()
+	phasedMiddleware.exec( "night", null, person)
 	t.equal( person.energy, 40, "person has two dinners")
 	t.end()
 })

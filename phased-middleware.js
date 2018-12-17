@@ -67,7 +67,7 @@ export class PhasedMiddleware{
 			}
 			// look at `phases` on the middleware
 			const middlewarePhases= middleware[ $phases]|| middleware.phases|| {}
-			for( let [ pipelineName, phases] in Object.entries( middlewarePhases)){
+			for( let [ pipelineName, phases] of Object.entries( middlewarePhases)){
 				for( let [ phaseName, handlers] of Object.entries( phases|| {})){
 					if( !Array.isArray( handlers)){
 						handlers= [ handlers]
