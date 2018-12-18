@@ -1,28 +1,17 @@
 import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
 import PhasedRun from "phased-run"
 
-import Iterator from "./iterator.js"
-import { middlewareName, defaultName} from "./name.js"
-import { $middlewares, $name, $phases, $pipelines} from "./symbol.js"
-import findPhases from "./util/find-phases.js"
-
-function _makePipeline( pipelineName){
-	const
-	  name= `PhasedMiddleware:${this.name?this.name+":": ""}${pipelineName}:pipeline`,
-	  wrapper= {
-		[ name]: input=> new Iterator(this, pipelineName, input)
-	  }
-	return wrapper[ name]
-}
+import { pluginName, defaultName} from "./name.js"
+import { $plugins, $name, $phases, $pipelines} from "./symbol.js"
 
 export class PhasedMiddleware{
-	constructor({ pipelines, middlewares, name}){
+	constructor({ pipelines, plugins, name}){
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
 	
 		// initialize base state
-		this[ $middlewares]= middlewares|| []
+		this[ $plugins]= plugins|| []
 		this[ $name]= name|| defaultName()
 		this[ $pipelines]= pipelines
 
@@ -31,24 +20,24 @@ export class PhasedMiddleware{
 			this[ pipelineName]= new PhasedRun( phases)
 		}
 
-		// install middlewares into pipelines
-		if( middlewares){
-			this.install( ...middlewares)
+		// install plugins into pipelines
+		if( plugins){
+			this.install( ...plugins)
 		}
 	}
-	install( ...middlewares){
-		for( let middleware of middlewares){
+	install( ...plugins){
+		for( let plugin of plugins){
 			// assign a unique symbol to this install
-			const symbol= Symbol( middlewareName( middleware))
+			const symbol= Symbol( pluginName( plugin))
 
 			// save this middleware - first in list of middlewares
-			const index= this[ $middlewares].push({ middleware, symbol})
+			const index= this[ $plugins].push({ plugin, symbol})
 			// associate the symbol with the middlware instance, for fast lookup
-			this[ symbol]= middleware
+			this[ symbol]= plugin
 
 			// look for properties that have a `phase`
-			for( let descriptor of getAllDescriptors( middleware)){
-				const handler= middleware[ descriptor.name]
+			for( let descriptor of getAllDescriptors( plugin)){
+				const handler= plugin[ descriptor.name]
 				let phases= handler[ $phases]!== undefined? handler[ $phases]: (handler.phases|| handler.phase)
 				if( !phases){
 					continue
@@ -58,16 +47,16 @@ export class PhasedMiddleware{
 				}
 				for( let item of phases){
 					if( !this[ item.pipeline]){
-						// warn? fail? middleware doesn't fit this PhasedMiddlewares
+						// warn? fail? plugin doesn't fit this PhasedMiddlewares
 						// at the same time, don't want to make this impossible!
 						continue
 					}
 					this[ item.pipeline].push({ handler, ...item, symbol})
 				}
 			}
-			// look at `phases` on the middleware
-			const middlewarePhases= middleware[ $phases]|| middleware.phases|| {}
-			for( let [ pipelineName, phases] of Object.entries( middlewarePhases)){
+			// look at `phases` on the plugin
+			const pluginPhases= plugin[ $phases]|| plugin.phases|| {}
+			for( let [ pipelineName, phases] of Object.entries( pluginPhases)){
 				for( let [ phaseName, handlers] of Object.entries( phases|| {})){
 					if( !Array.isArray( handlers)){
 						handlers= [ handlers]
@@ -107,14 +96,14 @@ export class PhasedMiddleware{
 
 		  // positional context
 		  position: 0,
-		  middleware: null,
+		  plugin: null,
 		  handler: null,
 		  symbol: null,
 		}
 		while( context.position< phasedRun.length){
 			const item= phasedRun[ context.position]
 			context.handler= item.handler
-			context.middleware= this[ item.symbol]
+			context.plugin= this[ item.symbol]
 			context.phase= item.phase
 			context.symbol= item.symbol
 			yield context
@@ -145,14 +134,14 @@ export class PhasedMiddleware{
 
 		  // positional context
 		  position: 0,
-		  middleware: null,
+		  plugin: null,
 		  handler: null,
 		  symbol: null,
 		}
 		while( context.position< phasedRun.length){
 			const item= phasedRun[ context.position]
 			context.handler= item.handler
-			context.middleware= this[ item.symbol]
+			context.plugin= this[ item.symbol]
 			context.phase= item.phase
 			context.symbol= item.symbol
 			context.handler( context)

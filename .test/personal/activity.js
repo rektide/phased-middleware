@@ -2,10 +2,10 @@ export class Activity{
 	constructor( intensity){
 		this.intensity= intensity|| 20
 	}
-	swim({ inputs, middleware, setOutput}){
+	swim({ inputs, plugin, setOutput}){
 		console.log( "swim")
 		const person= inputs[ 0]
-		person.energy-= middleware.intensity
+		person.energy-= plugin.intensity
 		setOutput( person)
 	}
 	sleep({ inputs, setOutput}){

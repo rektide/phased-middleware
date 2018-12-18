@@ -1,12 +1,12 @@
 let nameSerial= 0
-export function middlewareName( middleware){
-	if( middleware.name){
-		return `${middleware.name}-${nameSerial++}`
+export function pluginName( plugin){
+	if( plugin.name){
+		return `${plugin.name}-${nameSerial++}`
 	}
-	if( middleware.constructor){
-		return middleware.constructor.name
+	if( plugin.constructor){
+		return plugin.constructor.name
 	}
-	return `phased-middleware-${nameSerial++}`
+	return `phased-plugin-${nameSerial++}`
 }
 
 export function defaultName(){
