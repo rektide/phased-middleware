@@ -1,6 +1,7 @@
 import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
 import PhasedRun from "phased-run"
 
+import Cursor from "./cursor.js"
 import { pluginName, defaultName} from "./name.js"
 import { $plugins, $name, $phases, $pipelines} from "./symbol.js"
 
@@ -74,80 +75,22 @@ export class PhasedMiddleware{
 		return this
 	}
 	*pipeline( pipelineName, state, ...inputs){
-		const phasedRun= this[ pipelineName]
-		if( !phasedRun){
-			throw new Error(`Phased run '${pipelineName}' not found`)
-		}
-		const context= {
-		  // working material
-		  inputs,
-		  output: null,
-		  setOutput: function( output){
-			const oldValue= context.output
-			context.output= output
-			return oldValue
-		  },
-		  state,
-
-		  // global context of run
+		yield* new Cursor({
 		  phasedMiddleware: this,
-		  phasedRun,
 		  pipelineName,
-
-		  // positional context
-		  position: 0,
-		  plugin: null,
-		  handler: null,
-		  symbol: null,
-		}
-		while( context.position< phasedRun.length){
-			const item= phasedRun[ context.position]
-			context.handler= item.handler
-			context.plugin= this[ item.symbol]
-			context.phase= item.phase
-			context.symbol= item.symbol
-			yield context
-			context.position++
-		}
-		return context
+		  state,
+		  inputs})
 	}
 	exec( pipelineName, state, ...inputs){
-		const phasedRun= this[ pipelineName]
-		if( !phasedRun){
-			throw new Error(`Phased run '${pipelineName}' not found`)
-		}
-		const context= {
-		  // working material
-		  inputs,
-		  output: null,
-		  setOutput: function( output){
-			const oldValue= context.output
-			context.output= output
-			return oldValue
-		  },
-		  state,
-
-		  // global context of run
+		const cursor= new Cursor({
 		  phasedMiddleware: this,
-		  phasedRun,
 		  pipelineName,
-
-		  // positional context
-		  position: 0,
-		  plugin: null,
-		  handler: null,
-		  symbol: null,
+		  state,
+		  inputs})
+		for( const el of cursor){
+			el.handler( el)
 		}
-		while( context.position< phasedRun.length){
-			const item= phasedRun[ context.position]
-			context.handler= item.handler
-			context.plugin= this[ item.symbol]
-			context.phase= item.phase
-			context.symbol= item.symbol
-			context.handler( context)
-			context.position++
-		}
-		return context
+		return cursor.output
 	}
 }
 export default PhasedMiddleware
