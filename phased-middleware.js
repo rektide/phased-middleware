@@ -32,7 +32,7 @@ export class PhasedMiddleware{
 			const symbol= Symbol( pluginName( plugin))
 
 			// save this middleware - first in list of middlewares
-			const index= this[ $plugins]= [...this[ $plugins],{ plugin, symbol}]
+			const index= this[ $plugins]= [...this[ $plugins], plugin]
 			// associate the symbol with the middlware instance, for fast lookup
 			this[ symbol]= plugin
 
@@ -87,8 +87,8 @@ export class PhasedMiddleware{
 		  pipelineName,
 		  state,
 		  inputs})
-		for( const el of cursor){
-			el.handler( el)
+		while( !cursor.next().done){
+			cursor.middleware.handler( cursor)
 		}
 		return cursor.output
 	}

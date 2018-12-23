@@ -32,7 +32,6 @@ export class Cursor{
 		this.middleware= this.phasedRun[ position]
 		this.done= this.position>= this.phasedRun.length
 		if( this.done){
-			this.value= null
 		}
 		return this
 	}
