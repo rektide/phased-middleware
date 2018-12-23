@@ -30,7 +30,7 @@ export class Cursor{
 	next(){
 		const position= ++this.position
 		this.middleware= this.phasedRun[ position]
-		this.done= this.position=== this.phasedRun.length
+		this.done= this.position>= this.phasedRun.length
 		if( this.done){
 			this.value= null
 		}
