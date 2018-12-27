@@ -27,12 +27,15 @@ export class PhasedMiddleware{
 		}
 	}
 	install( ...plugins){
-		for( let plugin of plugins){
+		// save all middleware
+		const oldLen= this[ $plugins].length
+		this[ $plugins]= [ ...this[ $plugins], ...plugins]
+		for( let i= oldLen; i< this[ $plugins].length; ++i){
+			const plugin= plugins[ i]
+
 			// assign a unique symbol to this install
 			const symbol= Symbol( pluginName( plugin))
 
-			// save this middleware - first in list of middlewares
-			const index= this[ $plugins]= [...this[ $plugins], plugin]
 			// associate the symbol with the middlware instance, for fast lookup
 			this[ symbol]= plugin
 
