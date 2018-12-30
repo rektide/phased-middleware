@@ -11,6 +11,6 @@ export const
   pipelines= Symbol.for( "phased-middleware:pipelines"),
   Pipelines= pipelines,
   $pipelines= pipelines,
-  singleton= Symbol.for( "phased-middleware:singleton"),
-  Singleton= singleton,
-  $singleton= singleton
+  scope= Symbol.for( "phased-middleware:scope"),
+  Scope= scope,
+  $scope= scope

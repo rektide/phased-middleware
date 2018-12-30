@@ -1,3 +1,5 @@
+import Scope from "./scope.js"
+
 export class Cursor{
 	constructor({ phasedMiddleware, pipelineName, state, inputs, output}){
 		// working state
@@ -59,47 +61,37 @@ export class Cursor{
 	/**
 	* ideal agnostic get that drills down through available state/contexts
 	*/
-	get( prop, def){
-		// try gets
-		const
-		  handler= this.handler[ prop],
-		  hasHandler? this.handler!== undefined
-		if( hasHandler){
-			return handler
-		}
-		const
-		  plugin= this.plugin[ prop], // handler instance
-		  hasPlugin= plugin!== undefined
-		if( hasPlugin){
-			return plugin
-		}
-		const
-		  staticPlugin= this.plugin.constructor[ prop],
-		  hasStaticPlugin= staticPlugin!== undefined
-		if( hasStaticPlugin){
-			return staticPlugin
-		}
-		const
-		  cursor= this[ prop],
-		  hasCursor= cursor!== undefined
-		if( cursor){
-			return cursor
-		}
-		const
-		  phasedMiddleware= this.phasedMiddleware[ prop],
-		  hasPhasedMidleware= phasedMiddleware!== undefined
-		if( hasPhasedMiddleware){
-			return phasedMiddleware
+	get( prop, { defaultFn, default, scope, set}){
+		// `set` happens at specified scope, immediately
+		if( set){
+			const
+			  scopeName= scope|| this.get( $scope)|| "phasedMiddleware",
+			  scopeFn= Scope[ scopeName]
+			scopeFn.call( this, prop, { set})
 		}
 
-		// not found
-		if( def!== undefined){
+		// search for prop in DefaultScopes
+		for( let i= 0; i< DefaultScopes.length; ++i){
 			const
-			  scopeName= this.get( $scope),
-			  scope= Scope[ scope]
-			scope( prop, def)
+			  value= DefaultScopes[ i]( prop),
+			  hasValue= value!== undefined
+			if( hasValue){
+				return value
+			}
 		}
-		return value
+
+		// `default`
+		if( defaultFn!== undefined){
+			default= defaultFn.call( this, prop, { scope})
+		}
+		if( default=== undefined){
+			return
+		}
+		const
+		  scopeName= scope|| this.get( $scope)|| "phasedMiddleware",
+		  scopeFn= Scope[ scopeName]
+		scopeFn.call( this, prop, { set: default})
+		return default
 	}
 }
 export default Cursor
