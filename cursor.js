@@ -60,17 +60,44 @@ export class Cursor{
 	* ideal agnostic get that drills down through available state/contexts
 	*/
 	get( prop, def){
+		// try gets
 		const
-		  handler= this.handler[ prop], // handler instance
-		  hasHandler= handler!== undefined,
-		  value= hasHandler? handler: this.phasedMiddleware[ prop] // pm instance
-		if( value=== undefined&& def!== undefined){
-			if( this.plugin.constructor.singleton){
-				this.phasedMiddleware[ prop]= def
-			}else{
-				this.plugin[ prop]= def
-			}
-			return def
+		  handler= this.handler[ prop],
+		  hasHandler? this.handler!== undefined
+		if( hasHandler){
+			return handler
+		}
+		const
+		  plugin= this.plugin[ prop], // handler instance
+		  hasPlugin= plugin!== undefined
+		if( hasPlugin){
+			return plugin
+		}
+		const
+		  staticPlugin= this.plugin.constructor[ prop],
+		  hasStaticPlugin= staticPlugin!== undefined
+		if( hasStaticPlugin){
+			return staticPlugin
+		}
+		const
+		  cursor= this[ prop],
+		  hasCursor= cursor!== undefined
+		if( cursor){
+			return cursor
+		}
+		const
+		  phasedMiddleware= this.phasedMiddleware[ prop],
+		  hasPhasedMidleware= phasedMiddleware!== undefined
+		if( hasPhasedMiddleware){
+			return phasedMiddleware
+		}
+
+		// not found
+		if( def!== undefined){
+			const
+			  scopeName= this.get( $scope),
+			  scope= Scope[ scope]
+			scope( prop, def)
 		}
 		return value
 	}

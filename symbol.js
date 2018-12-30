@@ -1,13 +1,16 @@
 export const
-  plugins= Symbol.for("phased-middleware:middlewares"),
+  plugins= Symbol.for( "phased-middleware:middlewares"),
   Plugins= plugins,
   $plugins= plugins,
-  name= Symbol.for("phased-middleware:name"),
+  name= Symbol.for( "phased-middleware:name"),
   Name= name,
   $name= name,
-  phases= Symbol.for("phased-middleware:phases"),
+  phases= Symbol.for( "phased-middleware:phases"),
   Phases= phases,
   $phases= phases,
-  pipelines= Symbol.for("phased-middleware:pipelines"),
+  pipelines= Symbol.for( "phased-middleware:pipelines"),
   Pipelines= pipelines,
-  $pipelines= pipelines
+  $pipelines= pipelines,
+  singleton= Symbol.for( "phased-middleware:singleton"),
+  Singleton= singleton,
+  $singleton= singleton
