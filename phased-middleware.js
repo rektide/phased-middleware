@@ -22,16 +22,18 @@ export class PhasedMiddleware{
 		}
 
 		// install plugins into pipelines
-		if( plugins){
+		if( plugins&& plugins.length){
 			this.install( ...plugins)
 		}
 	}
 	install( ...plugins){
 		// save all middleware
-		const oldLen= this[ $plugins].length
-		this[ $plugins]= [ ...this[ $plugins], ...plugins]
-		for( let i= oldLen; i< this[ $plugins].length; ++i){
-			const plugin= plugins[ i]
+		const
+		  oldPlugins= this[ $plugins],
+		  oldLen= oldPlugins.length,
+		  newPlugins= this[ $plugins]= [ ...oldPlugins, ...plugins]
+		for( let i= oldLen; i< newPlugins.length; ++i){
+			const plugin= newPlugins[ i]
 
 			// assign a unique symbol to this install
 			const symbol= Symbol( pluginName( plugin))

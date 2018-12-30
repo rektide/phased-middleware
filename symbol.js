@@ -1,7 +1,7 @@
 export const
-  plugins= Symbol.for( "phased-middleware:middlewares"),
-  Plugins= plugins,
-  $plugins= plugins,
+  instantiate= Symbol.for( "phased-middleare:instantiate"),
+  Instantiate= instantiate,
+  $instantiate= instantiate,
   name= Symbol.for( "phased-middleware:name"),
   Name= name,
   $name= name,
@@ -11,6 +11,9 @@ export const
   pipelines= Symbol.for( "phased-middleware:pipelines"),
   Pipelines= pipelines,
   $pipelines= pipelines,
+  plugins= Symbol.for( "phased-middleware:middlewares"),
+  Plugins= plugins,
+  $plugins= plugins,
   scope= Symbol.for( "phased-middleware:scope"),
   Scope= scope,
   $scope= scope

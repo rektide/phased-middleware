@@ -40,8 +40,11 @@ export class Cursor{
 	get handler(){
 		return this.middleware.handler
 	}
-	get plugin(){
+	get plugin(){ // local state for this instance of the plugin
 		return this.phasedMiddleware[ this.symbol]
+	}
+	set plugin( value){
+		this.phasedMiddleware[ this.symbol]= value
 	}
 	get phase(){
 		return this.middleware.phase
@@ -61,13 +64,18 @@ export class Cursor{
 	/**
 	* ideal agnostic get that drills down through available state/contexts
 	*/
-	get( prop, { defaultFn, default, scope, set}){
-		// `set` happens at specified scope, immediately
+	get( prop, opts, { defaultFn, def, scope, set}){
+		// `set` happens at specified scope, immediately, if item not found there
 		if( set){
 			const
-			  scopeName= scope|| this.get( $scope)|| "phasedMiddleware",
-			  scopeFn= Scope[ scopeName]
-			scopeFn.call( this, prop, { set})
+			  scopeName= scope|| this.get( $scope)|| "plugin",
+			  scope_= Scope[ scopeName],
+			  value= scope_.get( value)
+			if( value=== undefined){
+				scope_.set( value)
+				return value
+			}
+			return value
 		}
 
 		// search for prop in DefaultScopes
@@ -82,16 +90,16 @@ export class Cursor{
 
 		// `default`
 		if( defaultFn!== undefined){
-			default= defaultFn.call( this, prop, { scope})
+			def= defaultFn.call( this, prop, { scope})
 		}
-		if( default=== undefined){
+		if( def=== undefined){
 			return
 		}
 		const
-		  scopeName= scope|| this.get( $scope)|| "phasedMiddleware",
+		  scopeName= scope|| this.get( $scope)|| "plugin",
 		  scopeFn= Scope[ scopeName]
-		scopeFn.call( this, prop, { set: default})
-		return default
+		scopeFn.call( this, prop, { set: def})
+		return def
 	}
 }
 export default Cursor
