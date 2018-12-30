@@ -53,5 +53,26 @@ export class Cursor{
 	[Symbol.iterator](){
 		return this
 	}
+
+	//// data accessing ////
+
+	/**
+	* ideal agnostic get that drills down through available state/contexts
+	*/
+	get( prop, def){
+		const
+		  handler= this.handler[ prop], // handler instance
+		  hasHandler= handler!== undefined,
+		  value= hasHandler? handler: this.phasedMiddleware[ prop] // pm instance
+		if( value=== undefined&& def!== undefined){
+			if( this.plugin.constructor.singleton){
+				this.phasedMiddleware[ prop]= def
+			}else{
+				this.plugin[ prop]= def
+			}
+			return def
+		}
+		return value
+	}
 }
 export default Cursor
