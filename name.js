@@ -5,8 +5,7 @@ export function namer( defaultPrefix){
 		throw new Error( "Prefix required")
 	}
 	return function( thing){
-		//let prefix= (thing&& thing.name)|| (thing&& thing.constructor!== String&& thing.constructor.name)|| defaultPrefix
-		let prefix= defaultPrefix
+		let prefix= (thing&& thing.name)|| (thing&& thing.constructor!== String&& thing.constructor.name)|| defaultPrefix
 		return `${prefix}-${nameSerial++}`
 	}
 }
