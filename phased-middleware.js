@@ -3,7 +3,13 @@ import PhasedRun from "phased-run"
 
 import Cursor from "./cursor.js"
 import { pluginName, defaultName} from "./name.js"
-import { $plugins, $name, $phases, $pipelines} from "./symbol.js"
+import {
+  $name,
+  $phases,
+  $pipelines,
+  $plugins,
+  $symbols
+} from "./symbol.js"
 
 export class PhasedMiddleware{
 	constructor({ pipelines, plugins, name}){
@@ -15,6 +21,7 @@ export class PhasedMiddleware{
 		this[ $name]= name|| defaultName()
 		this[ $pipelines]= pipelines
 		this[ $plugins]= []
+		this[ $symbols]= []
 
 		// create each pipeline
 		for( let [ pipelineName, phases] of Object.entries( pipelines)){
@@ -26,20 +33,32 @@ export class PhasedMiddleware{
 			this.install( ...plugins)
 		}
 	}
+	get pipelines(){
+		return this[ $pipelines]
+	}
+	get plugins(){
+		return this[ $plugins]
+	}
+	get symbols(){
+		return this[ $symbols]
+	}
 	install( ...plugins){
 		// save all middleware
 		const
 		  oldPlugins= this[ $plugins],
 		  oldLen= oldPlugins.length,
-		  newPlugins= this[ $plugins]= [ ...oldPlugins, ...plugins]
-		for( let i= oldLen; i< newPlugins.length; ++i){
-			const plugin= newPlugins[ i]
+		  allPlugins= this[ $plugins]= [ ...oldPlugins, ...plugins],
+		  newSymbols= plugins.map( plugin=> Symbol( pluginName( plugin))),
+		  allSymbols= this[ $symbols]= [ ...this[ $symbols], ...newSymbols]
+		for( let i= oldLen; i< allPlugins.length; ++i){
+			const
+			  plugin= allPlugins[ i],
+			  // assign a unique symbol to this install
+			  symbol= allSymbols[ i]
 
-			// assign a unique symbol to this install
-			const symbol= Symbol( pluginName( plugin))
-
+			// no.
 			// associate the symbol with the middlware instance, for fast lookup
-			this[ symbol]= plugin
+			//this[ symbol]= plugin
 
 			// look for properties that have a `phase`
 			for( let descriptor of getAllDescriptors( plugin)){
@@ -60,7 +79,7 @@ export class PhasedMiddleware{
 						// at the same time, don't want to make this impossible!
 						continue
 					}
-					this[ item.pipeline].push({ handler, ...item, symbol})
+					this[ item.pipeline].push({ handler, plugin, ...item, i, symbol})
 				}
 			}
 			// look at `phases` on the plugin
@@ -75,7 +94,7 @@ export class PhasedMiddleware{
 						continue
 					}
 					for( let handler of handlers){
-						this[ pipelineName].push({ handler, pipeline: pipelineName, phase: phaseName, symbol})
+						this[ pipelineName].push({ handler, plugin, pipeline: pipelineName, phase: phaseName, i, symbol})
 					}
 				}
 			}

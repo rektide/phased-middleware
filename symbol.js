@@ -16,4 +16,7 @@ export const
   $plugins= plugins,
   scope= Symbol.for( "phased-middleware:scope"),
   Scope= scope,
-  $scope= scope
+  $scope= scope,
+  symbols= Symbol.for( "phased-middleware:symbol"),
+  Symbols= symbols,
+  $symbols= symbols

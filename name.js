@@ -1,6 +1,6 @@
 let nameSerial= 0
 
-export function namer( defaultPrefix){
+export function namer( defaultPrefix, preprefix){
 	if( !defaultPrefix){
 		throw new Error( "Prefix required")
 	}

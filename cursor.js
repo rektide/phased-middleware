@@ -40,7 +40,13 @@ export class Cursor{
 	get handler(){
 		return this.middleware.handler
 	}
-	get plugin(){ // local state for this instance of the plugin
+	get i(){
+		return this.middleware.i
+	}
+	get plugin(){
+		return this.phasedMiddleware.plugins[ this.i]
+	}
+	get data(){ // local data to this instance of the middleware
 		return this.phasedMiddleware[ this.symbol]
 	}
 	set plugin( value){
