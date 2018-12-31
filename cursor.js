@@ -1,11 +1,12 @@
 import Scope from "./scope.js"
 
 export class Cursor{
-	constructor({ phasedMiddleware, pipelineName, state, inputs, output}){
+	constructor({ phasedMiddleware, pipelineName, state, inputs, output, symbols}){
 		// working state
 		this.inputs= inputs
 		this.state= state
 		this.output= null
+		this.symbols= symbols
 		// manipulator
 		this.setOutput= this.setOutput.bind( this)
 
@@ -37,6 +38,7 @@ export class Cursor{
 		}
 		return this
 	}
+
 	get handler(){
 		return this.middleware.handler
 	}
@@ -46,10 +48,10 @@ export class Cursor{
 	get plugin(){
 		return this.phasedMiddleware.plugins[ this.i]
 	}
-	get data(){ // local data to this instance of the middleware
+	get pluginData(){ // local data to this instance of the middleware
 		return this.phasedMiddleware[ this.symbol]
 	}
-	set plugin( value){
+	set pluginData( value){
 		this.phasedMiddleware[ this.symbol]= value
 	}
 	get phase(){
@@ -59,7 +61,7 @@ export class Cursor{
 		return this.phasedMiddleware[ this.pipelineName]
 	}
 	get symbol(){
-		return this.middleware.symbol
+		return this.symbols[ this.i]
 	}
 	[Symbol.iterator](){
 		return this

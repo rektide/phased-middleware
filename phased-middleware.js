@@ -33,8 +33,17 @@ export class PhasedMiddleware{
 			this.install( ...plugins)
 		}
 	}
+	get name(){
+		return this[ $name]
+	}
 	get pipelines(){
 		return this[ $pipelines]
+	}
+	plugin( i){
+		return this[ $plugins][ i]
+	}
+	symbol( i){
+		return this[ $symbols][ i]
 	}
 	get plugins(){
 		return this[ $plugins]
@@ -56,7 +65,7 @@ export class PhasedMiddleware{
 			  // assign a unique symbol to this install
 			  symbol= allSymbols[ i]
 
-			// no.
+			// no. we used to do this, but now plugins and data are separate
 			// associate the symbol with the middlware instance, for fast lookup
 			//this[ symbol]= plugin
 
@@ -79,7 +88,7 @@ export class PhasedMiddleware{
 						// at the same time, don't want to make this impossible!
 						continue
 					}
-					this[ item.pipeline].push({ handler, plugin, ...item, i, symbol})
+					this[ item.pipeline].push({ handler, plugin, ...item, i})
 				}
 			}
 			// look at `phases` on the plugin
@@ -94,26 +103,28 @@ export class PhasedMiddleware{
 						continue
 					}
 					for( let handler of handlers){
-						this[ pipelineName].push({ handler, plugin, pipeline: pipelineName, phase: phaseName, i, symbol})
+						this[ pipelineName].push({ handler, plugin, pipeline: pipelineName, phase: phaseName, i})
 					}
 				}
 			}
 		}
 		return this
 	}
-	*pipeline( pipelineName, state, ...inputs){
+	*pipeline( pipelineName, state, symbols= this.symbols, ...inputs){
 		yield* new Cursor({
 		  phasedMiddleware: this,
 		  pipelineName,
 		  state,
-		  inputs})
+		  inputs,
+		  symbols})
 	}
-	exec( pipelineName, state, ...inputs){
+	exec( pipelineName, state, symbols= this.symbols, ...inputs){
 		const cursor= new Cursor({
 		  phasedMiddleware: this,
 		  pipelineName,
 		  state,
-		  inputs})
+		  inputs,
+		  symbols})
 		while( !cursor.next().done){
 			cursor.middleware.handler( cursor)
 		}
