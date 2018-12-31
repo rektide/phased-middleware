@@ -44,6 +44,9 @@ export class PhasedMiddleware{
 			// look for properties that have a `phase`
 			for( let descriptor of getAllDescriptors( plugin)){
 				const handler= plugin[ descriptor.name]
+				if( !handler){
+					continue
+				}
 				let phases= handler[ $phases]!== undefined? handler[ $phases]: (handler.phases|| handler.phase)
 				if( !phases){
 					continue
