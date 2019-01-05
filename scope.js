@@ -4,6 +4,13 @@ function _default( defaultFn, def, target, prop, name){
 	return defaultFn? defaultFn(): def
 }
 
+function aliasNames( arr){
+	for( let i in get){
+		const fn= get[i]
+		arr[ fn.name]= fn
+	}
+}
+
 export const get= [
 	function plugin( cursor, prop){
 		return cursor.plugin[ prop]
@@ -24,6 +31,7 @@ export const get= [
 		return cursor.plugin[ prop]
 	}
 ], scopeGet= get, ScopeGet= get
+aliasNames( get)
 
 export const set= [
 	function plugin( cursor, prop, value){
@@ -67,6 +75,7 @@ export const set= [
 		return cursor.plugin
 	}
 ], scopeSet= set, ScopeSet= set
+aliasNames( set)
 
 export const
   plugin= {

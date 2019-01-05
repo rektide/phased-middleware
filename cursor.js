@@ -1,4 +1,7 @@
-import Scope from "./scope.js"
+import Scope,{ DefaultScopes} from "./scope.js"
+import { $scope} from "./symbol.js"
+
+const empty = Object.freeze({})
 
 export class Cursor{
 	constructor({ phasedMiddleware, pipelineName, state, inputs, output, symbols}){
@@ -72,7 +75,7 @@ export class Cursor{
 	/**
 	* ideal agnostic get that drills down through available state/contexts
 	*/
-	get( prop, opts, { defaultFn, def, scope, set}){
+	get( prop, { defaultFn, def, scope, set}= empty){
 		// `set` happens at specified scope, immediately, if item not found there
 		if( set){
 			const
@@ -89,7 +92,7 @@ export class Cursor{
 		// search for prop in DefaultScopes
 		for( let i= 0; i< DefaultScopes.length; ++i){
 			const
-			  value= DefaultScopes[ i]( prop),
+			  value= DefaultScopes[ i].get( this, prop),
 			  hasValue= value!== undefined
 			if( hasValue){
 				return value
