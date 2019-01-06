@@ -12,7 +12,7 @@ import {
 } from "./symbol.js"
 
 export class PhasedMiddleware{
-	constructor({ pipelines, plugins, name}){
+	constructor({ pipelines, plugins, name, $plugins: _plugins= [], $symbols: _symbols= []}){
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
@@ -20,8 +20,8 @@ export class PhasedMiddleware{
 		// initialize base state
 		this[ $name]= name|| defaultName()
 		this[ $pipelines]= pipelines
-		this[ $plugins]= []
-		this[ $symbols]= []
+		this[ $plugins]= _plugins
+		this[ $symbols]= _symbols
 
 		// create each pipeline
 		for( let [ pipelineName, phases] of Object.entries( pipelines)){
