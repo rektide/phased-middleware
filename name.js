@@ -6,10 +6,10 @@ export function namerFactory( ...prefixes){
 	function namer( thing){
 		let name= ""
 		if( thing){
-			name= thing[ $namePrefix]||( thing&& thing.constructor!== String&& thing.constructor.name)|| ""
+			name= thing[ $namePrefix]||( thing&& thing.constructor!== Object&& thing.constructor!== String&& thing.constructor.name)|| ""
 		}
 		const nameSep= name!== ""? ":": ""
-		return `${namer.prefixes}:${name}${nameSep}${nameSerial}++`
+		return `${namer.prefixes}:${name}${nameSep}${nameSerial++}`
 	}
 	namer.prefixes= prefixes.join( ":")
 	namer.extend= function( ...more){
