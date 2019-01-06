@@ -1,5 +1,7 @@
 import { defaultPrefix, $namePrefix} from "./symbol.js"
 
+export { $namePrefix}
+
 let nameSerial= 0
 
 export function namerFactory( ...prefixes){

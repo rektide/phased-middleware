@@ -51,6 +51,9 @@ export class PhasedMiddleware{
 		const index= this.pluginIndex( plugin)
 		return this.symbol( index)
 	}
+	pluginData( plugin){
+		return this[ this.pluginSymbol( plugin)]
+	}
 	symbol( i){
 		return this[ $symbols][ i]
 	}
