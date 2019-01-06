@@ -4,6 +4,7 @@ import PhasedRun from "phased-run"
 import Cursor from "./cursor.js"
 import { pluginName, defaultName} from "./name.js"
 import {
+  $alias,
   $name,
   $phases,
   $pipelines,
@@ -12,7 +13,7 @@ import {
 } from "./symbol.js"
 
 export class PhasedMiddleware{
-	constructor({ pipelines, plugins, name, $plugins: _plugins= [], $symbols: _symbols= []}){
+	constructor({ alias, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
@@ -22,6 +23,7 @@ export class PhasedMiddleware{
 		this[ $pipelines]= pipelines
 		this[ $plugins]= _plugins
 		this[ $symbols]= _symbols
+		this[ $alias]= alias
 
 		// create each pipeline
 		for( let [ pipelineName, phases] of Object.entries( pipelines)){
@@ -41,6 +43,13 @@ export class PhasedMiddleware{
 	}
 	plugin( i){
 		return this[ $plugins][ i]
+	}
+	pluginIndex( plugin){
+		return this.plugins.indexOf( plugin)
+	}
+	pluginSymbol( plugin){
+		const index= this.pluginIndex( plugin)
+		return this.symbol( index)
 	}
 	symbol( i){
 		return this[ $symbols][ i]
@@ -83,12 +92,15 @@ export class PhasedMiddleware{
 					phases= [ phases]
 				}
 				for( let item of phases){
-					if( !this[ item.pipeline]){
+					const
+					  name= this[ $alias]&& this[ $alias][ item.pipeline]|| item.pipeline,
+					  pipeline= this[ name]
+					if( !pipeline){
 						// warn? fail? plugin doesn't fit this PhasedMiddlewares
 						// at the same time, don't want to make this impossible!
 						continue
 					}
-					this[ item.pipeline].push({ handler, plugin, ...item, i})
+					pipeline.push({ handler, plugin, ...item, i})
 				}
 			}
 			// look at `phases` on the plugin
@@ -103,7 +115,10 @@ export class PhasedMiddleware{
 						continue
 					}
 					for( let handler of handlers){
-						this[ pipelineName].push({ handler, plugin, pipeline: pipelineName, phase: phaseName, i})
+						const
+						  name= this[ $alias]&& this[ $alias][ pipelineName]|| pipelineName,
+						  pipeline= this[ name]
+						pipeline.push({ handler, plugin, pipeline: pipelineName, phase: phaseName, i})
 					}
 				}
 			}

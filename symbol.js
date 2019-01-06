@@ -1,7 +1,10 @@
 export const defaultPrefix= "phased-middleware"
 
 export const
-  instantiate= Symbol.for( "phased-middleare:instantiate"),
+  alias= Symbol.for( `${defaultPrefix}:alias`),
+  Alias= alias,
+  $alias= alias,
+  instantiate= Symbol.for( `${defaultPrefix}::instantiate`),
   Instantiate= instantiate,
   $instantiate= instantiate,
   name= Symbol.for( `${defaultPrefix}:name`),
