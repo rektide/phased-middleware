@@ -5,6 +5,7 @@ import Cursor from "./cursor.js"
 import { pluginName, defaultName} from "./name.js"
 import {
   $alias,
+  $cursor,
   $name,
   $phases,
   $pipelines,
@@ -13,7 +14,7 @@ import {
 } from "./symbol.js"
 
 export class PhasedMiddleware{
-	constructor({ alias, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
+	constructor({ alias, cursor, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
 		if( !pipelines){
 			throw new Error("Expected 'pipelines'")
 		}
@@ -23,7 +24,12 @@ export class PhasedMiddleware{
 		this[ $pipelines]= pipelines
 		this[ $plugins]= _plugins
 		this[ $symbols]= _symbols
-		this[ $alias]= alias
+		if( alias){
+			this[ $alias]= alias
+		}
+		if( cursor){
+			this[ $cursor]= cursor
+		}
 
 		// create each pipeline
 		for( let [ pipelineName, phases] of Object.entries( pipelines)){
@@ -129,7 +135,8 @@ export class PhasedMiddleware{
 		return this
 	}
 	*pipeline( pipelineName, state, symbols= this.symbols, ...inputs){
-		yield* new Cursor({
+		const klass= this[ $cursor]|| Cursor
+		yield* new klass({
 		  phasedMiddleware: this,
 		  pipelineName,
 		  state,
@@ -137,12 +144,15 @@ export class PhasedMiddleware{
 		  symbols})
 	}
 	exec( pipelineName, state, symbols= this.symbols, ...inputs){
-		const cursor= new Cursor({
-		  phasedMiddleware: this,
-		  pipelineName,
-		  state,
-		  inputs,
-		  symbols})
+		const
+		  klass= this[ $cursor]|| Cursor,
+		  cursor= new klass({
+			phasedMiddleware: this,
+			pipelineName,
+			state,
+			inputs,
+			symbols
+		  })
 		while( !cursor.next().done){
 			cursor.middleware.handler( cursor)
 		}
