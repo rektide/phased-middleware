@@ -15,31 +15,34 @@ import {
 
 export class PhasedMiddleware{
 	constructor({ alias, cursor, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
-		if( !pipelines){
-			throw new Error("Expected 'pipelines'")
-		}
-	
 		// initialize base state
-		this[ $name]= name|| defaultName()
-		this[ $pipelines]= pipelines
-		this[ $plugins]= _plugins
-		this[ $symbols]= _symbols
-		if( alias){
-			this[ $alias]= alias
-		}
-		if( cursor){
-			this[ $cursor]= cursor
+		const properties= {
+		  [ alias&& $alias]: alias&&{ value: alias},
+		  [ cursor&& $cursor]: cursor&&{ value: cursor},
+		  [ $name]: { value: name|| defaultName()},
+		  [ pipelines&& $pipelines]: pipelines&&{ value: pipelines},
+		  [ _plugins&& $plugins]: _plugins&&{ value: _plugins},
+		  [ _symbols&& $symbols]: _symbols&&{ value: _symbols}
 		}
 
 		// create each pipeline
 		for( let [ pipelineName, phases] of Object.entries( pipelines)){
-			this[ pipelineName]= new PhasedRun( phases)
+			properties[ pipelineName]= new PhasedRun( phases)
 		}
+		Object.defineProperties( this, properties)
 
 		// install plugins into pipelines
-		if( plugins&& plugins.length){
+		if( plugins&& plugins.length&& !this[ $plugins]){
 			this.install( ...plugins)
 		}
+	}
+
+	// getters (some are indexed)
+	get alias(){
+		return this[ $alias]
+	}
+	get cursor(){
+		return this[ $cursor]
 	}
 	get name(){
 		return this[ $name]
@@ -48,7 +51,7 @@ export class PhasedMiddleware{
 		return this[ $pipelines]
 	}
 	plugin( i){
-		return this[ $plugins][ i]
+		return this.plugins[ i]
 	}
 	pluginIndex( plugin){
 		return this.plugins.indexOf( plugin)
@@ -61,7 +64,7 @@ export class PhasedMiddleware{
 		return this[ this.pluginSymbol( plugin)]
 	}
 	symbol( i){
-		return this[ $symbols][ i]
+		return this.symbols[ i]
 	}
 	get plugins(){
 		return this[ $plugins]
@@ -69,6 +72,8 @@ export class PhasedMiddleware{
 	get symbols(){
 		return this[ $symbols]
 	}
+
+	// methods
 	install( ...plugins){
 		// save all middleware
 		const
