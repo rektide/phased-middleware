@@ -13,26 +13,41 @@ import {
   $symbols
 } from "./symbol.js"
 
+const emptyObj= {}
+
+function _val( value){
+	return {
+		value,
+		writable: true
+	}
+}
+
 export class PhasedMiddleware{
-	constructor({ alias, cursor, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
+	constructor({ alias, cursor, extra, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
 		// initialize base state
 		const properties= {
-		  [ alias&& $alias]: alias&&{ value: alias},
-		  [ cursor&& $cursor]: cursor&&{ value: cursor},
+		  [ alias&& $alias]: alias&& _val( alias),
+		  [ cursor&& $cursor]: cursor&& _val( cursor),
 		  [ $name]: { value: name|| defaultName()},
-		  [ pipelines&& $pipelines]: pipelines&&{ value: pipelines},
-		  [ _plugins&& $plugins]: _plugins&&{ value: _plugins},
-		  [ _symbols&& $symbols]: _symbols&&{ value: _symbols}
+		  [ pipelines&& $pipelines]: pipelines&& _val( pipelines),
+		  [ _plugins&& $plugins]: _plugins&& _val( _plugins),
+		  [ _symbols&& $symbols]: _symbols&& _val( _symbols)
 		}
-
-		// create each pipeline
-		for( let [ pipelineName, phases] of Object.entries( pipelines)){
-			properties[ pipelineName]= new PhasedRun( phases)
+		// copy in extra props
+		for( let [ propKey, propValue] of Object.entries( extra|| emptyObj)){
+			properties[ propKey]= extra[ propKey]
 		}
+		// create each pipeline -- inhibited if was extraProp
+		for( let [ pipelineName, phases] of Object.entries( pipelines|| emptyObj)){
+			if( !properties[ pipelineName]){
+				properties[ pipelineName]= { value: new PhasedRun( phases)}
+			}
+		}
+		// TODO: perf test vs Object.assign'ing
 		Object.defineProperties( this, properties)
 
 		// install plugins into pipelines
-		if( plugins&& plugins.length&& !this[ $plugins]){
+		if( plugins&& plugins.length&& !(_plugins&& _plugins.length)){
 			this.install( ...plugins)
 		}
 	}
@@ -50,8 +65,14 @@ export class PhasedMiddleware{
 	get pipelines(){
 		return this[ $pipelines]
 	}
+	pipeline( name){
+		return this.pipelines[ name]
+	}
 	plugin( i){
 		return this.plugins[ i]
+	}
+	get plugins(){
+		return this[ $plugins]
 	}
 	pluginIndex( plugin){
 		return this.plugins.indexOf( plugin)
@@ -65,9 +86,6 @@ export class PhasedMiddleware{
 	}
 	symbol( i){
 		return this.symbols[ i]
-	}
-	get plugins(){
-		return this[ $plugins]
 	}
 	get symbols(){
 		return this[ $symbols]
