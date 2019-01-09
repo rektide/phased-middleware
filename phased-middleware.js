@@ -26,16 +26,19 @@ export class PhasedMiddleware{
 	constructor({ alias, cursor, extra, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
 		// initialize base state
 		const properties= {
-		  [ alias&& $alias]: alias&& _val( alias),
-		  [ cursor&& $cursor]: cursor&& _val( cursor),
+		  [ alias&& $alias]: _val( alias),
+		  [ cursor&& $cursor]: _val( cursor),
 		  [ $name]: { value: name|| defaultName()},
-		  [ pipelines&& $pipelines]: pipelines&& _val( pipelines),
-		  [ _plugins&& $plugins]: _plugins&& _val( _plugins),
-		  [ _symbols&& $symbols]: _symbols&& _val( _symbols)
+		  [ pipelines&& $pipelines]: _val( pipelines),
+		  [ _plugins&& $plugins]: _val( _plugins),
+		  [ _symbols&& $symbols]: _val( _symbols)
 		}
 		// copy in extra props
 		for( let [ propKey, propValue] of Object.entries( extra|| emptyObj)){
 			properties[ propKey]= extra[ propKey]
+		}
+		for( let sym of Object.getOwnPropertySymbols( extra|| emptyObj)){
+			properties[ sym]= extra[ sym]
 		}
 		// create each pipeline -- inhibited if was extraProp
 		for( let [ pipelineName, phases] of Object.entries( pipelines|| emptyObj)){
@@ -43,6 +46,7 @@ export class PhasedMiddleware{
 				properties[ pipelineName]= { value: new PhasedRun( phases)}
 			}
 		}
+		delete properties[ undefined]
 		// TODO: perf test vs Object.assign'ing
 		Object.defineProperties( this, properties)
 

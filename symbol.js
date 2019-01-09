@@ -22,7 +22,7 @@ export const
   plugins= Symbol.for( `${defaultPrefix}:middlewares`),
   Plugins= plugins,
   $plugins= plugins,
-  symbols= Symbol.for( `${defaultPrefix}:symbol`),
+  symbols= Symbol.for( `${defaultPrefix}:symbols`),
   Symbols= symbols,
   $symbols= symbols
 
