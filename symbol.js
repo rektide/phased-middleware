@@ -19,7 +19,7 @@ export const
   pipelines= Symbol.for( `${defaultPrefix}:pipelines`),
   Pipelines= pipelines,
   $pipelines= pipelines,
-  plugins= Symbol.for( `${defaultPrefix}:middlewares`),
+  plugins= Symbol.for( `${defaultPrefix}:plugins`),
   Plugins= plugins,
   $plugins= plugins,
   symbols= Symbol.for( `${defaultPrefix}:symbols`),

@@ -1,4 +1,5 @@
 import getAllDescriptors from "get-property-descriptor/get-all-descriptors.js"
+import getPropertyDescriptor from "get-property-descriptor/get-property-descriptor.js"
 import PhasedRun from "phased-run"
 
 import Cursor from "./cursor.js"
@@ -16,14 +17,14 @@ import {
 const emptyObj= {}
 
 function _val( value){
-	return {
+	return value&& {
 		value,
 		writable: true
 	}
 }
 
 export class PhasedMiddleware{
-	constructor({ alias, cursor, extra, name, pipelines, plugins, $plugins: _plugins= [], $symbols: _symbols= []}){
+	constructor({ alias, cursor, extra, name, pipelines, plugins, [ $plugins]: _plugins= [], [ $symbols]: _symbols= []}){
 		// initialize base state
 		const properties= {
 		  [ alias&& $alias]: _val( alias),
@@ -42,16 +43,17 @@ export class PhasedMiddleware{
 		}
 		// create each pipeline -- inhibited if was extraProp
 		for( let [ pipelineName, phases] of Object.entries( pipelines|| emptyObj)){
-			if( !properties[ pipelineName]){
+			const desc= getPropertyDescriptor( this, pipelineName)
+			if( !( desc|| properties[ pipelineName])){
 				properties[ pipelineName]= { value: new PhasedRun( phases)}
 			}
 		}
+		delete properties[ false]
 		delete properties[ undefined]
-		// TODO: perf test vs Object.assign'ing
 		Object.defineProperties( this, properties)
 
 		// install plugins into pipelines
-		if( plugins&& plugins.length&& !(_plugins&& _plugins.length)){
+		if( plugins&& plugins.length&& _plugins!== false){
 			this.install( ...plugins)
 		}
 	}
