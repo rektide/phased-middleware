@@ -7,7 +7,10 @@ export const
   cursor= Symbol.for( `${defaultPrefix}:cursor`),
   Cursor= cursor,
   $cursor= cursor,
-  instantiate= Symbol.for( `${defaultPrefix}::instantiate`),
+  install= Symbol.for( `${defaultPrefix}:install`),
+  Install= install,
+  $install= install,
+  instantiate= Symbol.for( `${defaultPrefix}:instantiate`),
   Instantiate= instantiate,
   $instantiate= instantiate,
   name= Symbol.for( `${defaultPrefix}:name`),
@@ -22,18 +25,24 @@ export const
   plugins= Symbol.for( `${defaultPrefix}:plugins`),
   Plugins= plugins,
   $plugins= plugins,
+  singleton= Symbol.for( `${defaultPrefix}:singleton`),
+  Singleton= singleton,
+  $singleton= singleton,
   symbols= Symbol.for( `${defaultPrefix}:symbols`),
   Symbols= symbols,
   $symbols= symbols
 
 // cursor.js
 export const
-  scope= Symbol.for( `${defaultPrefix}:scope`),
+  getter= Symbol.for( `${defaultPrefix}:cursor:getter`),
+  Getter= getter,
+  $getter= getter,
+  scope= Symbol.for( `${defaultPrefix}:cursor:scope`),
   Scope= scope,
   $scope= scope
 
 // name.js
 export const
-  namePrefix= Symbol.for( `${defaultPrefix}:namePrefix`),
+  namePrefix= Symbol.for( `${defaultPrefix}:name:namePrefix`),
   NamePrefix= namePrefix,
   $namePrefix= namePrefix

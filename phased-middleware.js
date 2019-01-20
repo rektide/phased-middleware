@@ -7,10 +7,12 @@ import { pluginName, defaultName} from "./name.js"
 import {
   $alias,
   $cursor,
+  $install,
   $name,
   $phases,
   $pipelines,
   $plugins,
+  $singleton,
   $symbols
 } from "./symbol.js"
 
@@ -99,12 +101,23 @@ export class PhasedMiddleware{
 
 	// methods
 	install( ...plugins){
-		// save all middleware
 		const
+		  // save all middleware
 		  oldPlugins= this[ $plugins],
 		  oldLen= oldPlugins.length,
 		  allPlugins= this[ $plugins]= [ ...oldPlugins, ...plugins],
-		  newSymbols= plugins.map( plugin=> Symbol( pluginName( plugin))),
+		  // generate new symbols for new plugins
+		  newSymbols= plugins.map( function( plugin){
+			const singleton= plugin[ $singleton]
+			if( singleton=== true){
+				return plugin[ $singleton]= pluginName( plugin)
+			}else if( singleton){
+				// kind of want to check to see if this plugin symbol already exists
+				// and if so, generate a new symbol for this new instance
+				return singleton
+			}
+			return pluginName( plugin)
+		  }),
 		  allSymbols= this[ $symbols]= [ ...this[ $symbols], ...newSymbols]
 		for( let i= oldLen; i< allPlugins.length; ++i){
 			const
@@ -138,7 +151,11 @@ export class PhasedMiddleware{
 						// at the same time, don't want to make this impossible!
 						continue
 					}
-					pipeline.push({ handler, plugin, ...item, i})
+					const context= { handler, plugin, ...item, i}
+					pipeline.push( context)
+					if( plugin[ $install]){
+						plugin[ $install]( context, this)
+					}
 				}
 			}
 			// look at `phases` on the plugin
@@ -155,8 +172,12 @@ export class PhasedMiddleware{
 					for( let handler of handlers){
 						const
 						  name= this[ $alias]&& this[ $alias][ pipelineName]|| pipelineName,
-						  pipeline= this[ name]
-						pipeline.push({ handler, plugin, pipeline: pipelineName, phase: phaseName, i})
+						  pipeline= this[ name],
+						  context= { handler, plugin, pipeline: pipelineName, phase: phaseName, i}
+						pipeline.push( context)
+						if( plugin[ $install]){
+							plugin[ $install]( context, this)
+						}
 					}
 				}
 			}

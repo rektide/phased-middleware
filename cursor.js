@@ -42,6 +42,15 @@ export class Cursor{
 		return this
 	}
 
+	// needed for example to allow effective use of #get.
+	get cursor(){
+		return this
+	}
+	// instance of #get() which is bound to `this`
+	get getter(){
+		return this[ $getter]|| (this[ $getter]= this.get.bind( this))
+	}
+
 	get handler(){
 		return this.middleware.handler
 	}
@@ -79,14 +88,18 @@ export class Cursor{
 		// `set` happens at specified scope, immediately, if item not found there
 		if( set){
 			const
-			  scopeName= scope|| this.get( $scope)|| "plugin",
-			  scope_= Scope[ scopeName],
-			  value= scope_.get( value)
-			if( value=== undefined){
-				scope_.set( value)
-				return value
+			  scopeName= scope|| this.get( $scope)|| "pluginData",
+			  scope_= Scope[ scopeName]
+			if( scope_.get){
+				const value= scope_.get( value)
+				if( value!== undefined){
+					return value
+				}
 			}
-			return value
+			if( scope_.set){
+				scope_.set( set)
+				return set
+			}
 		}
 
 		// search for prop in DefaultScopes

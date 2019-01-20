@@ -12,6 +12,9 @@ function aliasNames( arr){
 }
 
 export const get= [
+	function pluginData( cursor, prop){
+		return cursor.pluginData[ prop]
+	},
 	function plugin( cursor, prop){
 		return cursor.plugin[ prop]
 	},
@@ -42,9 +45,9 @@ export const set= [
 		if( instantiate!== undefined){
 			const
 			  hasInstantiateFn= instantiate!== true,
-			  instance= hasInstantiateFn? instantiate.call( plugin): { prop: value},
+			  instance= hasInstantiateFn? instantiate.call( plugin, value, cursor): {[ prop]: value},
 			  symbol= cursor.symbol
-			if( hasSingletonFn){
+			if( hasInstantiateFn){
 				instance[ prop]= value
 			} // otherwise we created an instance
 			// store value in the designated symbol:
@@ -78,6 +81,10 @@ export const set= [
 aliasNames( set)
 
 export const
+  pluginData= {
+	get: get.pluginData,
+	name: "pluginData"
+  },
   plugin= {
 	get: get.plugin,
 	name: "plugin",
@@ -111,6 +118,7 @@ export const
   }
 
 export const scope= {
+	pluginData,
 	plugin,
 	cursor,
 	handler,
@@ -120,11 +128,11 @@ export const scope= {
 export default scope
 
 export const defaultScopes= [
+	pluginData,
 	plugin,
 	cursor,
 	handler,
 	staticPlugin,
 	phasedMiddleware
 ], DefaultScopes= defaultScopes
-
 export const defaultScopeNames= defaultScopes.map( scope=> scope.name)
