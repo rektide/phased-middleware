@@ -13,7 +13,8 @@ function aliasNames( arr){
 
 export const get= [
 	function pluginData( cursor, prop){
-		return cursor.pluginData[ prop]
+		const pluginData= cursor.pluginData
+		return pluginData&& pluginData[ prop]
 	},
 	function plugin( cursor, prop){
 		return cursor.plugin[ prop]
