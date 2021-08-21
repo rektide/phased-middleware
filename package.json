@@ -1,10 +1,12 @@
 {
 	"name": "phased-middleware",
+	"type": "module",
 	"version": "1.0.1",
 	"description": "",
 	"main": "phased-middleware.js",
+	"module": "phased-middleware.js",
 	"scripts": {
-		"test": "node -r esm .test"
+		"test": "node .test"
 	},
 	"repository": {
 		"type": "git",
@@ -13,15 +15,8 @@
 	"keywords": [],
 	"author": "rektide de la faye",
 	"license": "MIT",
-	"module": "phased-middleware.js",
 	"esm": true,
-	"@std/esm": {
-		"cjs": {
-			"namedExports": true
-		}
-	},
 	"dependencies": {
-		"esm": "^3.1.1",
 		"get-property-descriptor": "^2.0.0",
 		"phased-run": "^1.0.0"
 	},

@@ -1,10 +1,11 @@
-import PhasedMiddleware from ".."
+import tape from "tape"
+import PhasedMiddleware from "../phased-middleware.js"
+
 import Personal from "./personal/index.js"
 import { defaults as personalPipelines } from "./personal/pipeline.js"
 import Activity from "./personal/activity.js"
 import Meals from "./personal/meals.js"
 import Person from "./personal/person.js"
-import tape from "tape"
 
 tape( "basic operation of two middleware, a person eating & active", function( t){
 	const

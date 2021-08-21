@@ -1,4 +1,4 @@
-import PhasedMiddleware from "../.." // ~
+import PhasedMiddleware from "../../phased-middleware.js"
 import PersonalPipeline from "./pipeline.js"
 import Activity from "./activity.js"
 import Meals from "./meals.js"

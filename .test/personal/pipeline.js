@@ -1,4 +1,4 @@
-import PhasedMiddleware from "../.."
+import PhasedMiddleware from "../../phased-middleware.js"
 
 export const defaults= {
   pipelines: {
